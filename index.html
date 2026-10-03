@@ -1,14 +1,144 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Football Goal Counter</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Match Stats Manager</title>
+    <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
 
-    <h1>Football Goal Counter</h1>
+    <div class="app-container">
+        
+        <!-- BRANDING HEADER -->
+        <div class="app-header">
+            <div class="logo-circle">FKM</div>
+            <div class="logo-text">KARLOVA VES</div>
+        </div>
 
-    <p>Moja prvá aplikácia</p>
+        <!-- SCREEN 1: MATCH CONFIGURATION -->
+        <div id="screen-1" class="screen active">
+            <div class="setup-form">
+                <div class="form-group">
+                    <label for="opponent-name">Opponent</label>
+                    <input type="text" id="opponent-name" value="ŠK Slovan">
+                </div>
+                
+                <div class="form-group">
+                    <label for="team-split">Squads</label>
+                    <select id="team-split">
+                        <option value="1">1</option>
+                        <option value="2" selected>2</option>
+                    </select>
+                </div>
 
+                <div id="coach-group" class="form-group">
+                    <label for="coach-select">Coach</label>
+                    <select id="coach-select">
+                        <option value="Peto V.">Peto V.</option>
+                        <option value="Coach B">Coach B</option>
+                    </select>
+                </div>
+
+                <button onclick="nextScreen(2)" class="btn-red-rect">Start</button>
+            </div>
+        </div>
+
+        <!-- SCREEN 2: SQUAD NOMINATION -->
+        <div id="screen-2" class="screen">
+            <div class="screen-meta-bar">
+                <span>Coach: <strong id="meta-coach">Peto V.</strong></span>
+                <span>Selected: <strong id="selected-count">0</strong></span>
+            </div>
+            
+            <div id="squad-grid" class="squad-grid">
+                <!-- Dynamically generated via JavaScript -->
+            </div>
+
+            <button onclick="startMatch()" class="btn-red-rect">Continue</button>
+        </div>
+
+        <!-- SCREEN 3: LIVE MATCH RUNTIME -->
+        <div id="screen-3" class="screen">
+            <div class="match-control-header">
+                <button onclick="nextScreen(2)" class="btn-icon-back">&lt;</button>
+                <button onclick="finishMatch()" class="btn-header-action">Output</button>
+                <div class="stopwatch-icon" onclick="toggleTimer()">⏱️</div>
+                <button onclick="resetScore()" class="btn-header-action">Score reset</button>
+            </div>
+            
+            <div class="match-live-banner">
+                <div id="timer-display" class="live-timer">00:00</div>
+                <div class="live-score-row">
+                    <span>FKM KV</span>
+                    <span id="live-score-text" class="live-score-numbers">0 : 0</span>
+                    <span id="live-opp-name">Opponent</span>
+                </div>
+            </div>
+
+            <div id="scorers-rows-container" class="scorers-rows-list">
+                <!-- Interactive player rows for goal logs -->
+            </div>
+
+            <div class="opponent-goal-section">
+                <button onclick="addOpponentGoal()" class="btn-add-opp-goal">+ Conceded Goal</button>
+            </div>
+        </div>
+
+        <!-- SCREEN 4: EXPORT RENDER OBJECT -->
+        <div id="screen-4" class="screen">
+            
+            <!-- EXPORT CARD BOUNDARY (IMAGE CAPTURE ZONE) -->
+            <div id="export-graphic-area" class="graphic-card">
+                <div class="graphic-header-banner">
+                    <div class="graphic-logo-box">FKM</div>
+                    <div class="graphic-match-info">
+                        <div class="graphic-date" id="graphic-current-date">03.10.2026</div>
+                        <div class="graphic-teams-score">
+                            FKM KV <span id="graph-score-span">0 : 0</span> <span id="graph-opp-span">Opponent</span>
+                        </div>
+                        <div class="graphic-team-coach" id="graph-coach-span">team: Peto V.</div>
+                    </div>
+                </div>
+                
+                <div class="graphic-body-content">
+                    <div class="graphic-goals-summary">
+                        <strong>Goals:</strong> <span id="graph-goals-text-summary">---</span>
+                    </div>
+
+                    <div id="jerseys-container-grid" class="jerseys-grid">
+                        <!-- Active squad array grid layout -->
+                    </div>
+
+                    <div class="goalkeeper-section">
+                        <div class="jersey-item goalkeeper">
+                            <div class="jersey-icon-svg">🧤</div>
+                            <div class="jersey-player-name" id="gk-name-display">Vrabec</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CONFIGURATION AND CONTROLS (EXCLUDED FROM GRAPHIC RENDER) -->
+            <div class="non-export-controls">
+                <div class="dropdown-arrow-divider">
+                    <select id="theme-selector" class="minimal-select" onchange="changeGraphicTheme()">
+                        <option value="classic-red">🔴 Classic Red</option>
+                        <option value="dark-mode">⚫ Dark Mode</option>
+                    </select>
+                </div>
+                
+                <div class="footer-action-buttons">
+                    <button onclick="nextScreen(3)" class="btn-footer-secondary">Back</button>
+                    <button onclick="window.print()" class="btn-footer-secondary">📄 PDF</button>
+                    <button onclick="restartApp()" class="btn-footer-red">Restart</button>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+    <script src="script.js"></script>
 </body>
 </html>
