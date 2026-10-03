@@ -2,14 +2,35 @@
     box-sizing: border-box;
 }
 
+
+html,
 body {
     margin: 0;
     padding: 0;
+    width: 100%;
+    min-height: 100%;
+}
+
+
+body {
     background: white;
     font-family: Arial, Helvetica, sans-serif;
     color: #555;
     font-size: 10px;
 }
+
+
+button,
+input,
+select {
+    font-family: inherit;
+}
+
+
+button {
+    cursor: pointer;
+}
+
 
 .app {
     width: 100%;
@@ -18,449 +39,715 @@ body {
     margin: 0 auto;
 }
 
+
 .screen {
     display: none;
-    min-height: 100vh;
     position: relative;
+    min-height: 100vh;
     background: white;
 }
+
 
 .screen.active {
     display: block;
 }
 
 
-/* =========================
+/* ==================================================
    GENERAL
-========================= */
+================================================== */
 
-.top-bar {
-    height: 38px;
+.red-header,
+.top-bar,
+.score-header,
+.output-header {
     background: #d52b2f;
-    margin: 15px 10px 0;
-    display: flex;
-    justify-content: center;
-    align-items: center;
 }
 
+
+.bottom-strip {
+    position: absolute;
+    left: 10px;
+    right: 10px;
+    bottom: 5px;
+    height: 27px;
+    background: #edf3f5;
+}
+
+
+/* ==================================================
+   LOGO
+================================================== */
+
 .club-logo {
-    width: 43px;
-    height: 43px;
+    width: 42px;
+    height: 42px;
+
     border: 1px solid white;
     border-radius: 50%;
+
     color: white;
+
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    font-size: 7px;
+
+    font-size: 6px;
     line-height: 8px;
 }
 
-.club-logo span {
-    font-size: 6px;
-}
 
 .club-logo strong {
     font-size: 8px;
 }
 
 
-/* =========================
-   SCREEN 1
-========================= */
+.club-logo.small {
+    width: 37px;
+    height: 37px;
+}
 
-.form-area {
+
+/* ==================================================
+   SCREEN 1
+================================================== */
+
+.top-bar {
+    height: 38px;
+
+    margin: 15px 10px 0;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+
+.setup-form {
     width: 110px;
     margin: 25px auto 0;
 }
 
-.form-area label {
-    display: block;
-    text-align: center;
-    margin-bottom: 5px;
-    color: #555;
-}
 
-.form-area input {
-    width: 110px;
-    height: 27px;
-    border: 1px solid #aaa;
-    text-align: center;
-    font-size: 10px;
+.form-group {
     margin-bottom: 38px;
 }
 
-.select-wrapper {
-    width: 64px;
-    height: 27px;
-    margin: 0 auto 38px;
-    position: relative;
+
+.form-group label {
+    display: block;
+
+    text-align: center;
+
+    margin-bottom: 5px;
+
+    color: #555;
+    font-size: 9px;
 }
 
-.select-wrapper select {
-    width: 64px;
+
+.form-group input {
+    display: block;
+
+    width: 110px;
     height: 27px;
+
+    padding: 0 5px;
+
     border: 1px solid #aaa;
-    background: white;
-    padding-left: 5px;
+
+    text-align: center;
+
     font-size: 10px;
-    appearance: none;
+
+    outline: none;
 }
 
-.select-wrapper::after {
+
+.form-group input:focus {
+    border-color: #c92327;
+}
+
+
+.custom-select {
+    position: relative;
+
+    width: 64px;
+    height: 27px;
+
+    margin: 0 auto;
+}
+
+
+.custom-select select {
+    width: 64px;
+    height: 27px;
+
+    appearance: none;
+
+    border: 1px solid #aaa;
+
+    background: white;
+
+    padding: 0 20px 0 6px;
+
+    font-size: 10px;
+
+    outline: none;
+}
+
+
+.custom-select::after {
     content: "⌄";
+
     position: absolute;
-    right: 0;
+
     top: 0;
+    right: 0;
+
     width: 19px;
     height: 27px;
+
     background: #c92327;
+
     color: white;
-    font-size: 17px;
-    line-height: 21px;
+
     text-align: center;
+
+    line-height: 22px;
+
+    font-size: 16px;
+
     pointer-events: none;
 }
 
-.primary-button,
-.restart-button {
+
+.hidden {
+    display: none !important;
+}
+
+
+.red-button {
     display: block;
+
     width: 59px;
     height: 20px;
+
     margin: 0 auto;
+
     border: none;
     border-radius: 4px;
+
     background: #c92327;
+
     color: white;
+
     font-size: 9px;
-    cursor: pointer;
-}
-
-.bottom-strip {
-    position: absolute;
-    bottom: 5px;
-    left: 10px;
-    right: 10px;
-    height: 27px;
-    background: #edf3f5;
 }
 
 
-/* =========================
+/* ==================================================
    SCREEN 2
-========================= */
+================================================== */
 
-.navigation-bar {
-    justify-content: space-between;
-    padding: 0 10px;
-}
-
-.nav-button {
-    border: none;
-    background: transparent;
-    color: white;
-    font-size: 36px;
-    font-weight: 200;
-    line-height: 20px;
-    cursor: pointer;
-}
-
-.club-logo.small {
-    width: 38px;
+.navigation-header {
     height: 38px;
+
+    margin: 15px 10px 0;
+
+    display: flex;
+
+    justify-content: space-between;
+    align-items: center;
+
+    padding: 0 7px;
 }
+
+
+.header-arrow {
+    width: 30px;
+    height: 32px;
+
+    padding: 0;
+
+    border: none;
+
+    background: transparent;
+
+    color: white;
+
+    font-size: 34px;
+    font-weight: 200;
+
+    line-height: 20px;
+}
+
 
 .selection-info {
-    display: flex;
-    justify-content: space-between;
-    padding: 15px 10px 7px;
+    height: 35px;
+
+    margin: 0 10px;
+
     border-bottom: 1px solid #ddd;
+
+    display: flex;
+
+    justify-content: space-between;
+    align-items: center;
+
+    padding: 0 10px;
+
     font-size: 8px;
 }
+
+
+.selection-coach {
+    min-width: 100px;
+}
+
 
 .players-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+
+    grid-template-columns:
+        repeat(3, 1fr);
+
     gap: 9px 18px;
+
     padding: 10px;
 }
 
+
 .player-button {
     height: 27px;
+
     border: 1px solid #e0e0e0;
-    background: white;
     border-radius: 4px;
+
+    background: white;
+
     color: #555;
+
     font-size: 8px;
-    cursor: pointer;
+
+    transition:
+        background 0.1s,
+        color 0.1s;
 }
+
 
 .player-button.selected {
     background: #d52b2f;
+
     border-color: #d52b2f;
+
     color: white;
 }
 
 
-/* =========================
+/* ==================================================
    SCREEN 3
-========================= */
+================================================== */
 
 .score-header {
-    height: 91px;
-    background: #d52b2f;
-    margin: 15px 10px 0;
     position: relative;
+
+    height: 91px;
+
+    margin: 15px 10px 0;
+
     color: white;
 }
 
-.header-button {
+
+.score-back {
     position: absolute;
-    left: 8px;
-    top: 8px;
-    background: none;
+
+    left: 7px;
+    top: 5px;
+
+    width: 30px;
+    height: 35px;
+
     border: none;
+
+    background: transparent;
+
     color: white;
+
     font-size: 34px;
 }
 
+
 .output-button {
     position: absolute;
+
     left: 56px;
     top: 10px;
-    background: white;
-    color: #d52b2f;
+
+    height: 22px;
+
+    padding: 0 10px;
+
     border: none;
     border-radius: 4px;
-    padding: 5px 10px;
+
+    background: white;
+
+    color: #d52b2f;
+
     font-size: 8px;
     font-weight: bold;
 }
 
-.stopwatch-icon {
+
+.timer-button {
     position: absolute;
-    top: 8px;
+
     left: 50%;
+    top: 7px;
+
     transform: translateX(-50%);
-    font-size: 23px;
+
+    width: 30px;
+    height: 28px;
+
+    padding: 0;
+
+    border: none;
+
+    background: transparent;
+
+    color: white;
+
+    font-size: 22px;
 }
+
 
 .reset-button {
     position: absolute;
-    right: 8px;
+
+    right: 7px;
     top: 10px;
-    background: white;
-    color: #d52b2f;
+
+    height: 22px;
+
+    padding: 0 7px;
+
     border: none;
     border-radius: 4px;
-    padding: 5px 7px;
+
+    background: white;
+
+    color: #d52b2f;
+
     font-size: 8px;
 }
 
-.timer {
+
+.timer-display {
     position: absolute;
+
     left: 12px;
     bottom: 38px;
+
     font-size: 7px;
 }
 
-.score-line {
+
+.main-score {
     position: absolute;
-    bottom: 17px;
+
     left: 0;
     right: 0;
+    bottom: 17px;
+
     display: flex;
+
     justify-content: center;
-    gap: 14px;
     align-items: center;
+
+    gap: 13px;
+
     font-size: 10px;
 }
 
-.score-line strong {
+
+.main-score strong {
     font-size: 12px;
 }
+
 
 .score-rows {
     margin: 0 10px;
 }
 
+
 .score-row {
     height: 33px;
+
     border-bottom: 1px solid #eee;
+
     display: grid;
-    grid-template-columns: 1fr 30px 30px 30px;
+
+    grid-template-columns:
+        1fr 30px 30px 30px;
+
     align-items: center;
 }
+
 
 .score-player {
     padding-left: 10px;
+
+    font-size: 8px;
 }
+
 
 .score-number {
     text-align: center;
+
+    font-size: 9px;
 }
 
-.plus,
-.minus {
+
+.goal-button {
+    width: 30px;
+    height: 30px;
+
     border: none;
-    background: none;
-    font-size: 24px;
+
+    background: transparent;
+
     color: #aaa;
-    cursor: pointer;
+
+    font-size: 23px;
+
+    font-weight: 200;
 }
 
 
-/* =========================
+.goal-button:active {
+    color: #d52b2f;
+}
+
+
+/* ==================================================
    SCREEN 4
-========================= */
+================================================== */
 
 .output-header {
-    margin: 15px 10px 0;
     height: 49px;
-    background: #d52b2f;
-    color: white;
+
+    margin: 15px 10px 0;
+
     display: flex;
-    align-items: center;
+
+    color: white;
 }
+
 
 .output-logo {
     width: 60px;
+
     display: flex;
+
     justify-content: center;
+    align-items: center;
 }
+
 
 .output-logo .club-logo {
     width: 35px;
     height: 35px;
 }
 
-.output-score {
+
+.output-header-info {
     flex: 1;
+
+    padding-right: 7px;
 }
 
-.date {
+
+.output-date {
     text-align: center;
+
+    margin-top: 2px;
+    margin-bottom: 3px;
+
     font-size: 6px;
-    margin-bottom: 4px;
 }
 
-.teams {
+
+.output-teams {
     display: flex;
+
     justify-content: space-around;
     align-items: center;
+
     font-size: 9px;
 }
 
-.teams span {
+
+.output-teams span {
     font-size: 11px;
 }
 
+
 .output-coach {
-    font-size: 6px;
     margin-top: 3px;
+
+    font-size: 6px;
 }
+
 
 .goals-summary {
     min-height: 47px;
+
     padding: 13px 12px;
-    font-size: 8px;
+
     display: flex;
+
     gap: 8px;
+
+    font-size: 8px;
+
+    line-height: 12px;
 }
+
 
 .field {
-    height: 192px;
-    margin: 0 10px;
-    background: #fafafa;
-    border-bottom: 1px solid #ddd;
     position: relative;
+
+    height: 192px;
+
+    margin: 0 10px;
+
+    background: #fafafa;
+
+    border-bottom: 1px solid #ddd;
 }
 
-.jersey-player {
+
+.field-player {
     position: absolute;
+
     width: 52px;
+
+    transform: translateX(-50%);
+
     text-align: center;
+
     font-size: 7px;
+
     color: #444;
 }
 
+
 .jersey {
-    width: 28px;
-    height: 28px;
-    margin: 0 auto 2px;
-    background: #c92327;
-    border-radius: 5px 5px 8px 8px;
     position: relative;
+
+    width: 27px;
+    height: 28px;
+
+    margin: 0 auto 2px;
+
+    background: #c92327;
+
+    border-radius:
+        5px 5px 7px 7px;
 }
+
 
 .jersey::before,
 .jersey::after {
     content: "";
+
     position: absolute;
-    top: 3px;
-    width: 12px;
-    height: 13px;
+
+    top: 2px;
+
+    width: 11px;
+    height: 14px;
+
     background: #c92327;
 }
 
+
 .jersey::before {
-    left: -8px;
+    left: -7px;
+
     transform: rotate(25deg);
 }
 
+
 .jersey::after {
-    right: -8px;
+    right: -7px;
+
     transform: rotate(-25deg);
 }
 
-.goalkeeper .jersey {
-    background: white;
-    border: 2px solid #222;
-    border-radius: 50%;
-    width: 23px;
-    height: 23px;
-}
 
 .output-select {
     width: 65px;
+
     margin: 45px auto 0;
 }
+
 
 .output-select select {
     width: 65px;
     height: 20px;
+
+    border: 1px solid #aaa;
+
+    background: white;
 }
+
 
 .output-buttons {
     position: absolute;
-    bottom: 17px;
+
     left: 10px;
     right: 10px;
+    bottom: 17px;
+
     display: flex;
+
     justify-content: space-around;
     align-items: center;
 }
 
-.back-button,
-.pdf-button,
-.restart-button {
-    cursor: pointer;
-}
 
-.back-button {
-    width: 63px;
-    height: 20px;
-    background: white;
-    border: 1px solid #555;
+.back-button,
+.restart-button {
+    height: 21px;
+
     border-radius: 4px;
+
     font-size: 8px;
 }
 
-.pdf-button {
+
+.back-button {
+    width: 63px;
+
+    border: 1px solid #555;
+
     background: white;
+
+    color: #555;
+}
+
+
+.restart-button {
+    width: 63px;
+
     border: none;
-    color: #d52b2f;
-    font-size: 22px;
-    font-weight: bold;
+
+    background: #c92327;
+
+    color: white;
 }
