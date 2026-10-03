@@ -1,283 +1,434 @@
-// ----------------------------------------------------
-// 1. CORE NAVIGATION (Placed at top for instant safety)
-// ----------------------------------------------------
-function nextScreen(screenNum) {
-    console.log("Navigating to screen: " + screenNum);
-    const screens = document.querySelectorAll('.screen');
-    screens.forEach(s => s.classList.remove('active'));
-    
-    const targetScreen = document.getElementById(`screen-${screenNum}`);
-    if (targetScreen) {
-        targetScreen.classList.add('active');
-    } else {
-        console.error(`Screen ${screenNum} not found in HTML!`);
-    }
-}
-
-// ----------------------------------------------------
-// 2. CONFIGURATION & MASTER DATABASE
-// ----------------------------------------------------
-const PLAYER_DATABASE = [
-    "Bartoš", "Čičatka", "Čuvara", "Dvorský", "Galko", "Gejdoš", 
-    "Gudkov", "Hikl", "Horváth", "Kosinský", "Kytka", "Masár", 
-    "Montoya", "Morong", "Paulík", "Polakovič", "Rosolov", "Rybár", 
-    "Škoda", "Tištan", "Torma", "Tóth", "Vavrovič", "Vrabec", "Zeleňák", "Žukal"
+const players = [
+    "Bartoš",
+    "Čičatka",
+    "Čuvara",
+    "Dvorský",
+    "Gálik",
+    "Gejdoš",
+    "Gudkov",
+    "Hikí",
+    "Horváth",
+    "Kosinský",
+    "Kytka",
+    "Mašar",
+    "Montoya",
+    "Morong",
+    "Paulík",
+    "Polakovič",
+    "Rosolý",
+    "Ryblár",
+    "Škoda",
+    "Tišťan",
+    "Tóma",
+    "Tóth",
+    "Varovčík",
+    "Vrabec",
+    "Zeleňák",
+    "Zukal"
 ];
 
-const GOALKEEPER_NAME = "Vrabec";
+let selectedPlayers = [];
 
-let appState = {
+let scores = {};
+
+let match = {
     opponent: "ŠK Slovan",
-    coach: "Peto V.",
-    nominatedPlayers: [],
-    scores: {}, 
-    opponentScore: 0
+    coach: "Peto V."
 };
 
-let timerInterval = null;
-let totalSeconds = 0;
 
-// ----------------------------------------------------
-// 3. SAFE INITIALIZATION (Protected via try-catch)
-// ----------------------------------------------------
-document.addEventListener("DOMContentLoaded", () => {
-    try {
-        renderNominationGrid();
-        setupCoachListener();
-        console.log("App safely initialized.");
-    } catch (error) {
-        console.error("Initialization failed, but core navigation is protected:", error);
-    }
-});
+/* =========================
+   SCREEN NAVIGATION
+========================= */
 
-function renderNominationGrid() {
-    const grid = document.getElementById('squad-grid');
-    if (!grid) return;
+function showScreen(number) {
+
+    document.querySelectorAll(".screen").forEach(screen => {
+        screen.classList.remove("active");
+    });
+
+    document
+        .getElementById("screen" + number)
+        .classList.add("active");
+}
+
+
+/* =========================
+   START MATCH
+========================= */
+
+function startMatch() {
+
+    match.opponent =
+        document.getElementById("opponent").value || "Opponent";
+
+    match.coach =
+        document.getElementById("coach").value;
+
+    document.getElementById("selectedCoach").textContent =
+        match.coach;
+
+    createPlayers();
+
+    showScreen(2);
+}
+
+
+/* =========================
+   PLAYER SELECTION
+========================= */
+
+function createPlayers() {
+
+    const grid =
+        document.getElementById("playersGrid");
+
     grid.innerHTML = "";
-    
-    PLAYER_DATABASE.forEach(name => {
-        const btn = document.createElement('button');
-        btn.className = "player-btn";
-        btn.textContent = name;
-        
-        // Auto-select defaults from layout setup
-        const defaultSelected = ["Gejdoš", "Gudkov", "Kosinský", "Kytka", "Montoya", "Morong", "Tištan", "Vrabec"];
-        if (defaultSelected.includes(name)) {
-            btn.classList.add('active');
-            if (!appState.nominatedPlayers.includes(name)) appState.nominatedPlayers.push(name);
+
+    players.forEach(player => {
+
+        const button =
+            document.createElement("button");
+
+        button.className = "player-button";
+
+        button.textContent = player;
+
+        button.onclick = () =>
+            togglePlayer(player, button);
+
+        grid.appendChild(button);
+    });
+
+    updateSelectedCount();
+}
+
+
+function togglePlayer(player, button) {
+
+    if (selectedPlayers.includes(player)) {
+
+        selectedPlayers =
+            selectedPlayers.filter(p => p !== player);
+
+        button.classList.remove("selected");
+
+    } else {
+
+        selectedPlayers.push(player);
+
+        button.classList.add("selected");
+    }
+
+    updateSelectedCount();
+}
+
+
+function updateSelectedCount() {
+
+    document.getElementById("selectedCount").textContent =
+        selectedPlayers.length;
+}
+
+
+/* =========================
+   GOAL SCREEN
+========================= */
+
+function showGoals() {
+
+    selectedPlayers.forEach(player => {
+
+        if (!(player in scores)) {
+            scores[player] = 0;
         }
 
-        btn.onclick = () => {
-            if (btn.classList.contains('active')) {
-                btn.classList.remove('active');
-                appState.nominatedPlayers = appState.nominatedPlayers.filter(p => p !== name);
-            } else {
-                btn.classList.add('active');
-                appState.nominatedPlayers.push(name);
-            }
-            const counter = document.getElementById('selected-count');
-            if (counter) counter.textContent = appState.nominatedPlayers.length;
-        };
-        grid.appendChild(btn);
     });
-    
-    const counter = document.getElementById('selected-count');
-    if (counter) counter.textContent = appState.nominatedPlayers.length;
+
+    createScoreRows();
+
+    document.getElementById("opponentName").textContent =
+        match.opponent;
+
+    showScreen(3);
 }
 
-function setupCoachListener() {
-    const select = document.getElementById('coach-select');
-    if (!select) return;
-    select.addEventListener('change', (e) => {
-        const metaCoach = document.getElementById('meta-coach');
-        if (metaCoach) metaCoach.textContent = e.target.value;
-        appState.coach = e.target.value;
-    });
-}
 
-// ----------------------------------------------------
-// 4. MATCH RUNTIME ACTIONS
-// ----------------------------------------------------
-function startMatch() {
-    const oppInput = document.getElementById('opponent-name');
-    appState.opponent = oppInput ? (oppInput.value || "Opponent") : "Opponent";
-    
-    const liveOpp = document.getElementById('live-opp-name');
-    if (liveOpp) liveOpp.textContent = appState.opponent;
-    
-    appState.nominatedPlayers.forEach(p => {
-        appState.scores[p] = appState.scores[p] || 0;
-    });
-    
-    const ownGoalLabel = `${appState.opponent} own goal`;
-    appState.scores[ownGoalLabel] = appState.scores[ownGoalLabel] || 0;
+function createScoreRows() {
 
-    renderScorersRows(ownGoalLabel);
-    updateLiveScoreDisplay();
-    nextScreen(3);
-}
+    const container =
+        document.getElementById("scoreRows");
 
-function renderScorersRows(ownGoalLabel) {
-    const container = document.getElementById('scorers-rows-container');
-    if (!container) return;
     container.innerHTML = "";
 
-    const fieldPlayers = appState.nominatedPlayers.filter(p => p !== GOALKEEPER_NAME);
+    selectedPlayers.forEach(player => {
 
-    fieldPlayers.forEach(name => {
-        createRowElement(container, name);
+        const row =
+            document.createElement("div");
+
+        row.className = "score-row";
+
+        row.innerHTML = `
+            <div class="score-player">${player}</div>
+
+            <div
+                class="score-number"
+                id="score-${player}"
+            >
+                ${scores[player] || 0}
+            </div>
+
+            <button
+                class="plus"
+                onclick="addGoal('${player}')"
+            >
+                +
+            </button>
+
+            <button
+                class="minus"
+                onclick="removeGoal('${player}')"
+            >
+                −
+            </button>
+        `;
+
+        container.appendChild(row);
     });
 
-    createRowElement(container, ownGoalLabel);
+    /* Opponent own goal */
+    const opponentRow =
+        document.createElement("div");
+
+    opponentRow.className = "score-row";
+
+    opponentRow.innerHTML = `
+        <div class="score-player">
+            ${match.opponent} vl.
+        </div>
+
+        <div
+            class="score-number"
+            id="score-own"
+        >
+            0
+        </div>
+
+        <button
+            class="plus"
+            onclick="addOwnGoal()"
+        >
+            +
+        </button>
+
+        <button
+            class="minus"
+            onclick="removeOwnGoal()"
+        >
+            −
+        </button>
+    `;
+
+    container.appendChild(opponentRow);
 }
 
-function createRowElement(container, name) {
-    const row = document.createElement('div');
-    row.className = "scorer-row-item";
 
-    const nameSpan = document.createElement('span');
-    nameSpan.className = "scorer-name";
-    nameSpan.textContent = name;
+function addGoal(player) {
 
-    const controls = document.createElement('div');
-    controls.className = "scorer-controls";
+    scores[player] =
+        (scores[player] || 0) + 1;
 
-    const countSpan = document.createElement('span');
-    countSpan.className = "scorer-counter";
-    countSpan.id = `count-${name.replace(/\s+/g, '-')}`;
-    countSpan.textContent = appState.scores[name] || 0;
+    updateScoreDisplay();
+}
 
-    const btnMinus = document.createElement('button');
-    btnMinus.className = "btn-math";
-    btnMinus.textContent = "−";
-    btnMinus.onclick = () => {
-        if (appState.scores[name] > 0) {
-            appState.scores[name]--;
-            countSpan.textContent = appState.scores[name];
-            updateLiveScoreDisplay();
+
+function removeGoal(player) {
+
+    if ((scores[player] || 0) > 0) {
+        scores[player]--;
+    }
+
+    updateScoreDisplay();
+}
+
+
+let ownGoals = 0;
+
+
+function addOwnGoal() {
+
+    ownGoals++;
+
+    updateScoreDisplay();
+}
+
+
+function removeOwnGoal() {
+
+    if (ownGoals > 0) {
+        ownGoals--;
+    }
+
+    updateScoreDisplay();
+}
+
+
+function updateScoreDisplay() {
+
+    let homeScore = 0;
+
+    selectedPlayers.forEach(player => {
+        homeScore += scores[player] || 0;
+    });
+
+    document.getElementById("homeScore").textContent =
+        homeScore;
+
+    document.getElementById("awayScore").textContent =
+        0 + ownGoals;
+
+    selectedPlayers.forEach(player => {
+
+        const element =
+            document.getElementById("score-" + player);
+
+        if (element) {
+            element.textContent =
+                scores[player] || 0;
         }
-    };
+    });
 
-    const btnPlus = document.createElement('button');
-    btnPlus.className = "btn-math";
-    btnPlus.textContent = "+";
-    btnPlus.onclick = () => {
-        appState.scores[name] = (appState.scores[name] || 0) + 1;
-        countSpan.textContent = appState.scores[name];
-        updateLiveScoreDisplay();
-    };
+    const ownElement =
+        document.getElementById("score-own");
 
-    controls.appendChild(countSpan);
-    controls.appendChild(btnPlus);
-    controls.appendChild(btnMinus);
-    
-    row.appendChild(nameSpan);
-    row.appendChild(controls);
-    container.appendChild(row);
+    if (ownElement) {
+        ownElement.textContent = ownGoals;
+    }
 }
 
-function addOpponentGoal() {
-    appState.opponentScore++;
-    updateLiveScoreDisplay();
-}
+
+/* =========================
+   RESET
+========================= */
 
 function resetScore() {
-    Object.keys(appState.scores).forEach(k => appState.scores[k] = 0);
-    appState.opponentScore = 0;
-    updateLiveScoreDisplay();
-    
-    const ownGoalLabel = `${appState.opponent} own goal`;
-    renderScorersRows(ownGoalLabel);
-}
 
-function updateLiveScoreDisplay() {
-    let ourTotal = 0;
-    Object.keys(appState.scores).forEach(key => {
-        ourTotal += appState.scores[key];
+    scores = {};
+    ownGoals = 0;
+
+    selectedPlayers.forEach(player => {
+        scores[player] = 0;
     });
-    const scoreText = document.getElementById('live-score-text');
-    if (scoreText) scoreText.textContent = `${ourTotal} : ${appState.opponentScore}`;
+
+    createScoreRows();
+    updateScoreDisplay();
 }
 
-function toggleTimer() {
-    if (timerInterval) {
-        clearInterval(timerInterval);
-        timerInterval = null;
-    } else {
-        timerInterval = setInterval(() => {
-            totalSeconds++;
-            const mins = String(Math.floor(totalSeconds / 60)).padStart(2, '0');
-            const secs = String(totalSeconds % 60).padStart(2, '0');
-            const timerDisp = document.getElementById('timer-display');
-            if (timerDisp) timerDisp.textContent = `${mins}:${secs}`;
-        }, 1000);
-    }
+
+/* =========================
+   OUTPUT
+========================= */
+
+function showOutput() {
+
+    document.getElementById("outputOpponent").textContent =
+        match.opponent;
+
+    createOutputField();
+
+    createGoalsSummary();
+
+    showScreen(4);
 }
 
-// ----------------------------------------------------
-// 5. GRAPHIC GENERATION & OUTPUT
-// ----------------------------------------------------
-function finishMatch() {
-    if (timerInterval) toggleTimer();
 
-    const d = new Date();
-    const formattedDate = `${String(d.getDate()).padStart(2, '0')}.${String(d.getMonth() + 1).padStart(2, '0')}.${d.getFullYear()}`;
-    const dateDisp = document.getElementById('graphic-current-date');
-    if (dateDisp) dateDisp.textContent = formattedDate;
+function createOutputField() {
 
-    let ourTotal = 0;
-    Object.keys(appState.scores).forEach(key => ourTotal += appState.scores[key]);
-    
-    const scoreSpan = document.getElementById('graph-score-span');
-    if (scoreSpan) scoreSpan.textContent = `${ourTotal} : ${appState.opponentScore}`;
-    
-    const oppSpan = document.getElementById('graph-opp-span');
-    if (oppSpan) oppSpan.textContent = appState.opponent;
-    
-    const coachSpan = document.getElementById('graph-coach-span');
-    if (coachSpan) coachSpan.textContent = `team: ${appState.coach}`;
+    const field =
+        document.getElementById("field");
 
-    let goalsArray = [];
-    Object.keys(appState.scores).forEach(name => {
-        if (appState.scores[name] > 0) {
-            goalsArray.push(`${name} ${appState.scores[name] > 1 ? appState.scores[name] : ''}`.trim());
+    field.innerHTML = "";
+
+    const positions = [
+        [35, 5],
+        [65, 5],
+        [35, 42],
+        [65, 42],
+        [35, 79],
+        [65, 79],
+        [50, 112]
+    ];
+
+    selectedPlayers
+        .slice(0, positions.length)
+        .forEach((player, index) => {
+
+            const playerElement =
+                document.createElement("div");
+
+            playerElement.className =
+                "jersey-player";
+
+            playerElement.style.left =
+                positions[index][0] + "%";
+
+            playerElement.style.top =
+                positions[index][1] + "px";
+
+            playerElement.innerHTML = `
+                <div class="jersey"></div>
+                <div>${player}</div>
+            `;
+
+            field.appendChild(playerElement);
+        });
+}
+
+
+function createGoalsSummary() {
+
+    const goalScorers = [];
+
+    selectedPlayers.forEach(player => {
+
+        const count = scores[player] || 0;
+
+        if (count > 0) {
+
+            if (count === 1) {
+                goalScorers.push(player);
+            } else {
+                goalScorers.push(
+                    `${player} ${count}`
+                );
+            }
         }
     });
-    const summary = document.getElementById('graph-goals-text-summary');
-    if (summary) summary.textContent = goalsArray.length > 0 ? goalsArray.join(', ') : "None";
 
-    const jerseysGrid = document.getElementById('jerseys-container-grid');
-    if (jerseysGrid) {
-        jerseysGrid.innerHTML = "";
-        const fieldPlayers = appState.nominatedPlayers.filter(p => p !== GOALKEEPER_NAME);
-        
-        fieldPlayers.forEach(name => {
-            const item = document.createElement('div');
-            item.className = "jersey-item";
-            
-            const icon = document.createElement('div');
-            icon.className = "jersey-icon-svg";
-            icon.textContent = "👕"; 
-            
-            if ((appState.scores[name] || 0) > 0) {
-                icon.style.filter = "drop-shadow(0px 0px 6px #c91d24)";
-            }
+    if (ownGoals > 0) {
 
-            const nameDiv = document.createElement('div');
-            nameDiv.className = "jersey-player-name";
-            nameDiv.textContent = name;
-
-            item.appendChild(icon);
-            item.appendChild(nameDiv);
-
-            if ((appState.scores[name] || 0) > 0) {
-                const badge = document.createElement('div');
-                badge.className = "jersey-goals-badge";
-                badge.textContent = `⚽ ${appState.scores[name]}`;
-                item.appendChild(badge);
-            }
-
-            jerseysGrid.appendChild(item);
-        });
+        goalScorers.push(
+            `${match.opponent} vl.`
+        );
     }
 
+    document.getElementById("goalsText").textContent =
+        goalScorers.join(", ");
+}
+
+
+/* =========================
+   RESTART
+========================= */
+
+function restartGame() {
+
+    selectedPlayers = [];
+    scores = {};
+    ownGoals = 0;
+
+    document.getElementById("opponent").value =
+        "ŠK Slovan";
+
+    showScreen(1);
+}
