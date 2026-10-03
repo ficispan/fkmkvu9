@@ -1,348 +1,1376 @@
 <!DOCTYPE html>
 <html lang="sk">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FKM Karlova Ves – Match</title>
 
-    <title>FKM KV Goals</title>
+<style>
+* {
+    box-sizing: border-box;
+}
 
-    <link rel="stylesheet" href="style.css">
+:root {
+    --red: #d52b2f;
+    --red-dark: #c92327;
+    --text: #555;
+    --light: #edf3f5;
+    --border: #dfe4e7;
+    --white: #fff;
+}
+
+body {
+    margin: 0;
+    background: var(--light);
+    font-family: Arial, Helvetica, sans-serif;
+    color: var(--text);
+}
+
+.app {
+    width: 100%;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+}
+
+.phone {
+    width: 100%;
+    max-width: 320px;
+    min-height: 100vh;
+    background: white;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 0 25px rgba(0,0,0,.08);
+}
+
+.screen {
+    display: none;
+    min-height: 100vh;
+    background: white;
+}
+
+.screen.active {
+    display: block;
+}
+
+.topbar {
+    height: 62px;
+    background: var(--red);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    font-weight: 800;
+    letter-spacing: .3px;
+}
+
+.content {
+    padding: 22px 18px 30px;
+}
+
+.logo {
+    width: 74px;
+    height: 74px;
+    border-radius: 50%;
+    background: var(--red);
+    color: white;
+    margin: 8px auto 18px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    font-weight: 900;
+    line-height: 1;
+    border: 5px solid white;
+    box-shadow: 0 2px 8px rgba(0,0,0,.18);
+}
+
+.logo span:first-child {
+    font-size: 20px;
+}
+
+.logo span:last-child {
+    font-size: 11px;
+    margin-top: 3px;
+}
+
+h1 {
+    text-align: center;
+    color: #222;
+    font-size: 22px;
+    margin: 8px 0 22px;
+}
+
+h2 {
+    color: #222;
+    font-size: 18px;
+    margin: 0 0 16px;
+}
+
+label {
+    display: block;
+    font-size: 12px;
+    font-weight: 700;
+    color: #666;
+    margin: 0 0 6px;
+}
+
+.field {
+    margin-bottom: 15px;
+}
+
+input,
+select {
+    width: 100%;
+    height: 44px;
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    padding: 0 12px;
+    font-size: 15px;
+    outline: none;
+    background: white;
+    color: #333;
+}
+
+input:focus,
+select:focus {
+    border-color: var(--red);
+}
+
+.team-options {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 9px;
+}
+
+.team-option {
+    border: 2px solid var(--border);
+    border-radius: 8px;
+    padding: 13px 8px;
+    text-align: center;
+    cursor: pointer;
+    font-weight: 700;
+    font-size: 13px;
+    background: white;
+}
+
+.team-option.selected {
+    border-color: var(--red);
+    color: var(--red);
+    background: #fff5f5;
+}
+
+.hidden {
+    display: none !important;
+}
+
+.button {
+    width: 100%;
+    min-height: 46px;
+    border: none;
+    border-radius: 7px;
+    background: var(--red);
+    color: white;
+    font-size: 15px;
+    font-weight: 800;
+    cursor: pointer;
+    margin-top: 8px;
+}
+
+.button:hover {
+    background: var(--red-dark);
+}
+
+.button:disabled {
+    background: #cfd4d6;
+    color: #f4f4f4;
+    cursor: not-allowed;
+}
+
+.button.secondary {
+    background: white;
+    color: var(--red);
+    border: 2px solid var(--red);
+}
+
+.button.small {
+    min-height: 38px;
+    font-size: 13px;
+}
+
+.back {
+    display: block;
+    text-align: center;
+    color: #777;
+    font-size: 13px;
+    margin-top: 16px;
+    cursor: pointer;
+}
+
+.section {
+    margin-bottom: 22px;
+}
+
+.players {
+    border-top: 1px solid var(--border);
+}
+
+.player {
+    display: flex;
+    align-items: center;
+    min-height: 48px;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+}
+
+.player input {
+    width: 18px;
+    height: 18px;
+    margin: 0 11px 0 2px;
+}
+
+.player-name {
+    font-size: 14px;
+    color: #333;
+}
+
+.trainer-box {
+    padding: 12px;
+    background: #f7f8f9;
+    border-radius: 7px;
+    margin-bottom: 15px;
+}
+
+.match-head {
+    text-align: center;
+    padding: 20px 10px 14px;
+}
+
+.match-date {
+    font-size: 12px;
+    color: #888;
+    margin-bottom: 10px;
+}
+
+.score {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 18px;
+    color: #222;
+}
+
+.score-team {
+    width: 105px;
+    font-size: 14px;
+    font-weight: 800;
+}
+
+.score-number {
+    font-size: 48px;
+    font-weight: 900;
+    color: var(--red);
+    line-height: 1;
+}
+
+.goal-list {
+    margin-top: 15px;
+}
+
+.goal-player {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--border);
+    min-height: 50px;
+}
+
+.goal-player-name {
+    color: #333;
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.goal-button {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: none;
+    background: var(--red);
+    color: white;
+    font-size: 20px;
+    cursor: pointer;
+}
+
+.goal-count {
+    font-weight: 800;
+    color: var(--red);
+    min-width: 25px;
+    text-align: right;
+}
+
+.match-actions {
+    margin-top: 18px;
+}
+
+.result-card {
+    width: 100%;
+    background: white;
+    border: 1px solid var(--border);
+    padding: 20px 15px;
+    text-align: center;
+}
+
+.result-card .date {
+    font-size: 12px;
+    color: #888;
+}
+
+.result-card .club {
+    color: var(--red);
+    font-size: 17px;
+    font-weight: 900;
+    margin-top: 10px;
+}
+
+.result-card .big-score {
+    font-size: 52px;
+    font-weight: 900;
+    color: #222;
+    margin: 12px 0;
+}
+
+.result-card .opponent {
+    font-size: 15px;
+    font-weight: 700;
+    color: #444;
+}
+
+.result-card .trainer {
+    font-size: 12px;
+    margin-top: 10px;
+    color: #777;
+}
+
+.scorers {
+    text-align: left;
+    margin-top: 20px;
+    padding-top: 15px;
+    border-top: 1px solid var(--border);
+}
+
+.scorers-title {
+    font-weight: 800;
+    color: #333;
+    font-size: 13px;
+    margin-bottom: 8px;
+}
+
+.scorer {
+    display: flex;
+    justify-content: space-between;
+    padding: 5px 0;
+    font-size: 13px;
+}
+
+.footer-strip {
+    height: 34px;
+    background: var(--light);
+    margin-top: 25px;
+}
+
+.error {
+    color: var(--red);
+    font-size: 12px;
+    margin-top: 6px;
+    display: none;
+}
+
+@media (min-width: 500px) {
+    .phone {
+        margin: 20px 0;
+        min-height: calc(100vh - 40px);
+        border-radius: 12px;
+    }
+
+    .screen {
+        min-height: calc(100vh - 40px);
+    }
+}
+</style>
 </head>
 
 <body>
 
 <div class="app">
+<div class="phone">
 
-    <!-- ==================================================
-         SCREEN 1 - MATCH SETUP
-    =================================================== -->
+<!-- =====================================================
+     SCREEN 1 – NOVÝ ZÁPAS
+===================================================== -->
 
-    <section id="screen1" class="screen active">
+<section id="screen1" class="screen active">
 
-        <div class="top-bar">
-            <div class="club-logo">
-                <div>FKM</div>
-                <strong>KV</strong>
-            </div>
+    <div class="topbar">
+        ⚽ NOVÝ ZÁPAS
+    </div>
+
+    <div class="content">
+
+        <div class="logo">
+            <span>FKM</span>
+            <span>KV</span>
         </div>
 
-        <div class="setup-form">
+        <h1>Nastavenie zápasu</h1>
 
-            <div class="form-group">
-                <label for="opponent">Opponent</label>
+        <div class="section">
 
+            <div class="field">
+                <label>POČET TÍMOV</label>
+
+                <div class="team-options">
+
+                    <div
+                        id="oneTeam"
+                        class="team-option selected"
+                        onclick="selectTeamCount(1)"
+                    >
+                        1 TÍM
+                    </div>
+
+                    <div
+                        id="twoTeams"
+                        class="team-option"
+                        onclick="selectTeamCount(2)"
+                    >
+                        2 TÍMY
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="field">
+                <label>NÁZOV TÍMU</label>
                 <input
+                    id="teamName"
                     type="text"
+                    value="FKM Karlova Ves"
+                    placeholder="Názov tímu"
+                >
+            </div>
+
+            <div class="field">
+                <label>SÚPER</label>
+                <input
                     id="opponent"
-                    value="ŠK Slovan"
+                    type="text"
+                    placeholder="Názov súpera"
                 >
             </div>
 
-
-            <div class="form-group">
-                <label for="squads">Squads</label>
-
-                <div class="custom-select">
-                    <select id="squads">
-                        <option value="1">1</option>
-                        <option value="2">2</option>
-                    </select>
-                </div>
-            </div>
-
-
-            <div
-                id="coachGroup"
-                class="form-group coach-group hidden"
-            >
-
-                <label for="coach">Coach</label>
-
-                <div class="custom-select">
-
-                    <select id="coach">
-
-                        <option value="Peťo Šiko">
-                            Peťo Šiko
-                        </option>
-
-                        <option value="Peťo Vrabec">
-                            Peťo Vrabec
-                        </option>
-
-                    </select>
-
-                </div>
-
-            </div>
-
-
-            <button
-                id="startButton"
-                class="red-button"
-            >
-                Start
-            </button>
-
-        </div>
-
-
-        <div class="bottom-strip"></div>
-
-    </section>
-
-
-    <!-- ==================================================
-         SCREEN 2 - PLAYER SELECTION
-    =================================================== -->
-
-    <section id="screen2" class="screen">
-
-        <div class="red-header navigation-header">
-
-            <button
-                class="header-arrow"
-                id="playersBack"
-            >
-                ‹
-            </button>
-
-
-            <div class="club-logo small">
-                <div>FKM</div>
-                <strong>KV</strong>
-            </div>
-
-
-            <button
-                class="header-arrow"
-                id="playersNext"
-            >
-                ›
-            </button>
-
-        </div>
-
-
-        <div class="selection-info">
-
-            <div
-                id="selectionCoach"
-                class="selection-coach"
-            >
-            </div>
-
-            <div>
-                Selected:
-                <span id="selectedCount">0</span>
-            </div>
-
-        </div>
-
-
-        <div
-            id="playersGrid"
-            class="players-grid"
-        >
-        </div>
-
-
-        <div class="bottom-strip"></div>
-
-    </section>
-
-
-    <!-- ==================================================
-         SCREEN 3 - GOALS
-    =================================================== -->
-
-    <section id="screen3" class="screen">
-
-        <div class="score-header">
-
-            <button
-                id="goalsBack"
-                class="score-back"
-            >
-                ‹
-            </button>
-
-
-            <button
-                id="outputButton"
-                class="output-button"
-            >
-                Output
-            </button>
-
-
-            <button
-                id="timerButton"
-                class="timer-button"
-            >
-                ⏱
-            </button>
-
-
-            <button
-                id="resetButton"
-                class="reset-button"
-            >
-                Score reset
-            </button>
-
-
-            <div
-                id="timerDisplay"
-                class="timer-display"
-            >
-                00:00
-            </div>
-
-
-            <div class="main-score">
-
-                <span>FKM KV</span>
-
-                <strong id="homeScore">
-                    0
-                </strong>
-
-                <span>:</span>
-
-                <strong id="awayScore">
-                    0
-                </strong>
-
-                <span id="gameOpponent">
-                    ŠK Slovan
-                </span>
-
-            </div>
-
-        </div>
-
-
-        <div
-            id="scoreRows"
-            class="score-rows"
-        >
-        </div>
-
-
-        <div class="bottom-strip"></div>
-
-    </section>
-
-
-    <!-- ==================================================
-         SCREEN 4 - OUTPUT
-    =================================================== -->
-
-    <section id="screen4" class="screen">
-
-        <div class="output-header">
-
-            <div class="output-logo">
-
-                <div class="club-logo">
-                    <div>FKM</div>
-                    <strong>KV</strong>
-                </div>
-
-            </div>
-
-
-            <div class="output-header-info">
-
-                <div
-                    id="outputDate"
-                    class="output-date"
+            <div class="field">
+                <label>DÁTUM</label>
+                <input
+                    id="matchDate"
+                    type="date"
                 >
+            </div>
+
+        </div>
+
+        <!-- TRAINERS ARE SHOWN ONLY FOR TWO TEAMS -->
+
+        <div id="twoTeamTrainers" class="hidden">
+
+            <div class="trainer-box">
+
+                <label>TÍM 1 – TRÉNER</label>
+
+                <select id="trainer1">
+                    <option value="">Vyber trénera</option>
+                    <option value="Peťo Šiko">Peťo Šiko</option>
+                    <option value="Peťo Vrabec">Peťo Vrabec</option>
+                </select>
+
+            </div>
+
+            <div class="trainer-box">
+
+                <label>TÍM 2 – TRÉNER</label>
+
+                <select id="trainer2">
+                    <option value="">Vyber trénera</option>
+                    <option value="Peťo Šiko">Peťo Šiko</option>
+                    <option value="Peťo Vrabec">Peťo Vrabec</option>
+                </select>
+
+            </div>
+
+        </div>
+
+        <div id="setupError" class="error"></div>
+
+        <button
+            class="button"
+            onclick="goToLineup()"
+        >
+            ĎALEJ →
+        </button>
+
+    </div>
+
+    <div class="footer-strip"></div>
+
+</section>
+
+
+<!-- =====================================================
+     SCREEN 2 – ZOSTAVA
+===================================================== -->
+
+<section id="screen2" class="screen">
+
+    <div class="topbar">
+        ⚽ ZOSTAVA
+    </div>
+
+    <div class="content">
+
+        <div class="logo">
+            <span>FKM</span>
+            <span>KV</span>
+        </div>
+
+        <h1 id="lineupTitle">Výber hráčov</h1>
+
+        <div id="lineupTrainerArea"></div>
+
+        <div class="section">
+
+            <h2>Hráči</h2>
+
+            <div class="players">
+
+                <label class="player">
+                    <input type="checkbox" value="Hráč 1">
+                    <span class="player-name">Hráč 1</span>
+                </label>
+
+                <label class="player">
+                    <input type="checkbox" value="Hráč 2">
+                    <span class="player-name">Hráč 2</span>
+                </label>
+
+                <label class="player">
+                    <input type="checkbox" value="Hráč 3">
+                    <span class="player-name">Hráč 3</span>
+                </label>
+
+                <label class="player">
+                    <input type="checkbox" value="Hráč 4">
+                    <span class="player-name">Hráč 4</span>
+                </label>
+
+                <label class="player">
+                    <input type="checkbox" value="Hráč 5">
+                    <span class="player-name">Hráč 5</span>
+                </label>
+
+                <label class="player">
+                    <input type="checkbox" value="Hráč 6">
+                    <span class="player-name">Hráč 6</span>
+                </label>
+
+                <label class="player">
+                    <input type="checkbox" value="Hráč 7">
+                    <span class="player-name">Hráč 7</span>
+                </label>
+
+                <label class="player">
+                    <input type="checkbox" value="Hráč 8">
+                    <span class="player-name">Hráč 8</span>
+                </label>
+
+            </div>
+
+        </div>
+
+        <button
+            class="button"
+            onclick="startMatch()"
+        >
+            ZAČAŤ ZÁPAS
+        </button>
+
+        <span
+            class="back"
+            onclick="showScreen(1)"
+        >
+            ← Späť
+        </span>
+
+    </div>
+
+    <div class="footer-strip"></div>
+
+</section>
+
+
+<!-- =====================================================
+     SCREEN 3 – ZÁPAS
+===================================================== -->
+
+<section id="screen3" class="screen">
+
+    <div class="topbar">
+        ⚽ ZÁPAS
+    </div>
+
+    <div class="content">
+
+        <div class="match-head">
+
+            <div id="matchDateDisplay" class="match-date"></div>
+
+            <div class="score">
+
+                <div>
+                    <div id="liveTeamName" class="score-team">
+                        FKM Karlova Ves
+                    </div>
                 </div>
 
-
-                <div class="output-teams">
-
-                    <strong>FKM KV</strong>
-
-                    <span id="outputScore">
-                        0 : 0
-                    </span>
-
-                    <strong id="outputOpponent">
-                        ŠK Slovan
-                    </strong>
-
+                <div class="score-number">
+                    <span id="homeScore">0</span>
+                    :
+                    <span id="awayScore">0</span>
                 </div>
 
-
-                <div
-                    id="outputCoach"
-                    class="output-coach"
-                >
+                <div>
+                    <div id="liveOpponent" class="score-team">
+                        Súper
+                    </div>
                 </div>
 
             </div>
 
         </div>
 
+        <h2>Strelci</h2>
 
-        <div class="goals-summary">
+        <div id="goalPlayers" class="goal-list"></div>
 
-            <span>Góly:</span>
+        <div class="match-actions">
 
-            <span id="goalsText">
-                -
-            </span>
+            <button
+                class="button secondary"
+                onclick="undoGoal()"
+            >
+                ↩ UNDO POSLEDNÉHO GÓLU
+            </button>
+
+            <button
+                class="button"
+                onclick="finishMatch()"
+            >
+                UKONČIŤ ZÁPAS
+            </button>
 
         </div>
 
+    </div>
 
-        <div
-            id="field"
-            class="field"
+    <div class="footer-strip"></div>
+
+</section>
+
+
+<!-- =====================================================
+     SCREEN 4 – VÝSLEDOK
+===================================================== -->
+
+<section id="screen4" class="screen">
+
+    <div class="topbar">
+        ⚽ VÝSLEDOK
+    </div>
+
+    <div class="content">
+
+        <div class="result-card">
+
+            <div
+                id="resultDate"
+                class="date"
+            ></div>
+
+            <div class="logo">
+                <span>FKM</span>
+                <span>KV</span>
+            </div>
+
+            <div
+                id="resultTeam"
+                class="club"
+            >
+                FKM Karlova Ves
+            </div>
+
+            <div
+                id="resultScore"
+                class="big-score"
+            >
+                0 : 0
+            </div>
+
+            <div
+                id="resultOpponent"
+                class="opponent"
+            >
+                Súper
+            </div>
+
+            <div
+                id="resultTrainer"
+                class="trainer"
+            ></div>
+
+            <div class="scorers">
+
+                <div class="scorers-title">
+                    Góly:
+                </div>
+
+                <div id="resultScorers"></div>
+
+            </div>
+
+        </div>
+
+        <button
+            class="button"
+            onclick="restartMatch()"
         >
-        </div>
+            NOVÝ ZÁPAS
+        </button>
 
+    </div>
 
-        <div class="output-select">
+    <div class="footer-strip"></div>
 
-            <select>
-                <option></option>
-            </select>
+</section>
 
-        </div>
-
-
-        <div class="output-buttons">
-
-            <button
-                id="outputBack"
-                class="back-button"
-            >
-                Back
-            </button>
-
-
-            <button
-                id="restartButton"
-                class="restart-button"
-            >
-                Restart
-            </button>
-
-        </div>
-
-
-        <div class="bottom-strip"></div>
-
-    </section>
-
+</div>
 </div>
 
 
-<script src="script.js"></script>
+<script>
+
+/* =====================================================
+   APPLICATION STATE
+===================================================== */
+
+const state = {
+
+    teamCount: 1,
+
+    teamName: "FKM Karlova Ves",
+
+    opponent: "",
+
+    date: "",
+
+    trainer1: "",
+
+    trainer2: "",
+
+    selectedPlayers: [],
+
+    score: 0,
+
+    goals: []
+
+};
+
+
+/* =====================================================
+   INITIALIZATION
+===================================================== */
+
+document.addEventListener("DOMContentLoaded", function () {
+
+    const today = new Date();
+
+    const yyyy = today.getFullYear();
+
+    const mm = String(today.getMonth() + 1).padStart(2, "0");
+
+    const dd = String(today.getDate()).padStart(2, "0");
+
+    document.getElementById("matchDate").value =
+        `${yyyy}-${mm}-${dd}`;
+
+});
+
+
+/* =====================================================
+   SCREEN NAVIGATION
+===================================================== */
+
+function showScreen(number) {
+
+    document
+        .querySelectorAll(".screen")
+        .forEach(screen => {
+            screen.classList.remove("active");
+        });
+
+    document
+        .getElementById("screen" + number)
+        .classList.add("active");
+
+    window.scrollTo(0, 0);
+}
+
+
+/* =====================================================
+   TEAM COUNT
+===================================================== */
+
+function selectTeamCount(count) {
+
+    state.teamCount = count;
+
+    document
+        .getElementById("oneTeam")
+        .classList.remove("selected");
+
+    document
+        .getElementById("twoTeams")
+        .classList.remove("selected");
+
+    if (count === 1) {
+
+        document
+            .getElementById("oneTeam")
+            .classList.add("selected");
+
+        document
+            .getElementById("twoTeamTrainers")
+            .classList.add("hidden");
+
+        /*
+         * IMPORTANT:
+         * For one team we deliberately clear
+         * both trainer values.
+         */
+
+        state.trainer1 = "";
+        state.trainer2 = "";
+
+    } else {
+
+        document
+            .getElementById("twoTeams")
+            .classList.add("selected");
+
+        document
+            .getElementById("twoTeamTrainers")
+            .classList.remove("hidden");
+    }
+}
+
+
+/* =====================================================
+   SCREEN 1 -> SCREEN 2
+===================================================== */
+
+function goToLineup() {
+
+    const teamName =
+        document
+            .getElementById("teamName")
+            .value
+            .trim();
+
+    const opponent =
+        document
+            .getElementById("opponent")
+            .value
+            .trim();
+
+    const date =
+        document
+            .getElementById("matchDate")
+            .value;
+
+    const error =
+        document.getElementById("setupError");
+
+    error.style.display = "none";
+
+    if (!teamName) {
+
+        error.textContent =
+            "Zadaj názov tímu.";
+
+        error.style.display = "block";
+
+        return;
+    }
+
+    if (!opponent) {
+
+        error.textContent =
+            "Zadaj názov súpera.";
+
+        error.style.display = "block";
+
+        return;
+    }
+
+    if (!date) {
+
+        error.textContent =
+            "Vyber dátum zápasu.";
+
+        error.style.display = "block";
+
+        return;
+    }
+
+    if (state.teamCount === 2) {
+
+        const trainer1 =
+            document.getElementById("trainer1").value;
+
+        const trainer2 =
+            document.getElementById("trainer2").value;
+
+        if (!trainer1 || !trainer2) {
+
+            error.textContent =
+                "Pri dvoch tímoch vyber trénera pre oba tímy.";
+
+            error.style.display = "block";
+
+            return;
+        }
+
+        state.trainer1 = trainer1;
+        state.trainer2 = trainer2;
+
+    } else {
+
+        state.trainer1 = "";
+        state.trainer2 = "";
+    }
+
+    state.teamName = teamName;
+    state.opponent = opponent;
+    state.date = date;
+
+    /*
+     * Trainer is intentionally NOT displayed
+     * when there is only one team.
+     */
+
+    renderLineup();
+
+    showScreen(2);
+}
+
+
+/* =====================================================
+   SCREEN 2
+===================================================== */
+
+function renderLineup() {
+
+    const trainerArea =
+        document.getElementById("lineupTrainerArea");
+
+    trainerArea.innerHTML = "";
+
+    /*
+     * ONE TEAM:
+     * no trainer anywhere.
+     */
+
+    if (state.teamCount === 2) {
+
+        trainerArea.innerHTML = `
+            <div class="trainer-box">
+                <label>TÍM 1 – TRÉNER</label>
+                <strong>${escapeHtml(state.trainer1)}</strong>
+            </div>
+
+            <div class="trainer-box">
+                <label>TÍM 2 – TRÉNER</label>
+                <strong>${escapeHtml(state.trainer2)}</strong>
+            </div>
+        `;
+    }
+
+}
+
+
+/* =====================================================
+   START MATCH
+===================================================== */
+
+function startMatch() {
+
+    const checkedPlayers =
+        Array.from(
+            document.querySelectorAll(
+                '#screen2 input[type="checkbox"]:checked'
+            )
+        );
+
+    state.selectedPlayers =
+        checkedPlayers.map(
+            checkbox => checkbox.value
+        );
+
+    /*
+     * It is allowed to start even without a player
+     * because the user may want to record a match
+     * without predefined scorers.
+     */
+
+    state.score = 0;
+
+    state.goals = [];
+
+    renderMatch();
+
+    showScreen(3);
+}
+
+
+/* =====================================================
+   RENDER MATCH
+===================================================== */
+
+function renderMatch() {
+
+    document.getElementById("liveTeamName")
+        .textContent = state.teamName;
+
+    document.getElementById("liveOpponent")
+        .textContent = state.opponent;
+
+    document.getElementById("homeScore")
+        .textContent = state.score;
+
+    document.getElementById("awayScore")
+        .textContent = "0";
+
+    document.getElementById("matchDateDisplay")
+        .textContent = formatDate(state.date);
+
+    const container =
+        document.getElementById("goalPlayers");
+
+    container.innerHTML = "";
+
+    if (state.selectedPlayers.length === 0) {
+
+        container.innerHTML = `
+            <div style="
+                padding:15px 0;
+                font-size:13px;
+                color:#777;
+                text-align:center;
+            ">
+                Nebol vybraný žiadny hráč.
+            </div>
+        `;
+
+        return;
+    }
+
+    state.selectedPlayers.forEach(player => {
+
+        const count =
+            state.goals.filter(
+                goal => goal.player === player
+            ).length;
+
+        const row =
+            document.createElement("div");
+
+        row.className = "goal-player";
+
+        row.innerHTML = `
+            <div class="goal-player-name">
+                ${escapeHtml(player)}
+            </div>
+
+            <div style="
+                display:flex;
+                align-items:center;
+                gap:10px;
+            ">
+                <div class="goal-count">
+                    ${count}
+                </div>
+
+                <button
+                    class="goal-button"
+                    onclick="addGoal('${escapeJs(player)}')"
+                >
+                    ⚽
+                </button>
+            </div>
+        `;
+
+        container.appendChild(row);
+    });
+}
+
+
+/* =====================================================
+   ADD GOAL
+===================================================== */
+
+function addGoal(player) {
+
+    state.score++;
+
+    state.goals.push({
+
+        player: player,
+
+        time: new Date()
+
+    });
+
+    renderMatch();
+}
+
+
+/* =====================================================
+   UNDO
+===================================================== */
+
+function undoGoal() {
+
+    if (state.goals.length === 0) {
+
+        return;
+    }
+
+    state.goals.pop();
+
+    state.score =
+        Math.max(0, state.score - 1);
+
+    renderMatch();
+}
+
+
+/* =====================================================
+   FINISH MATCH
+===================================================== */
+
+function finishMatch() {
+
+    renderResult();
+
+    showScreen(4);
+}
+
+
+/* =====================================================
+   RESULT
+===================================================== */
+
+function renderResult() {
+
+    document.getElementById("resultDate")
+        .textContent = formatDate(state.date);
+
+    document.getElementById("resultTeam")
+        .textContent = state.teamName;
+
+    document.getElementById("resultScore")
+        .textContent = `${state.score} : 0`;
+
+    document.getElementById("resultOpponent")
+        .textContent = state.opponent;
+
+    const trainer =
+        document.getElementById("resultTrainer");
+
+    /*
+     * ONE TEAM:
+     * absolutely no trainer output.
+     */
+
+    if (state.teamCount === 1) {
+
+        trainer.textContent = "";
+
+    } else {
+
+        trainer.textContent =
+            `Tím 1: ${state.trainer1} • Tím 2: ${state.trainer2}`;
+    }
+
+    const scorers =
+        document.getElementById("resultScorers");
+
+    scorers.innerHTML = "";
+
+    if (state.goals.length === 0) {
+
+        scorers.innerHTML = `
+            <div style="
+                color:#888;
+                font-size:13px;
+            ">
+                Žiadne góly.
+            </div>
+        `;
+
+        return;
+    }
+
+    const counts = {};
+
+    state.goals.forEach(goal => {
+
+        if (!counts[goal.player]) {
+
+            counts[goal.player] = 0;
+        }
+
+        counts[goal.player]++;
+    });
+
+    Object.keys(counts).forEach(player => {
+
+        const row =
+            document.createElement("div");
+
+        row.className = "scorer";
+
+        row.innerHTML = `
+            <span>${escapeHtml(player)}</span>
+            <strong>${counts[player]}×</strong>
+        `;
+
+        scorers.appendChild(row);
+    });
+}
+
+
+/* =====================================================
+   RESTART
+===================================================== */
+
+function restartMatch() {
+
+    state.teamCount = 1;
+
+    state.teamName = "FKM Karlova Ves";
+
+    state.opponent = "";
+
+    state.date = "";
+
+    state.trainer1 = "";
+
+    state.trainer2 = "";
+
+    state.selectedPlayers = [];
+
+    state.score = 0;
+
+    state.goals = [];
+
+    document.getElementById("teamName")
+        .value = "FKM Karlova Ves";
+
+    document.getElementById("opponent")
+        .value = "";
+
+    document.getElementById("trainer1")
+        .value = "";
+
+    document.getElementById("trainer2")
+        .value = "";
+
+    document
+        .querySelectorAll(
+            '#screen2 input[type="checkbox"]'
+        )
+        .forEach(cb => cb.checked = false);
+
+    selectTeamCount(1);
+
+    const today = new Date();
+
+    const yyyy = today.getFullYear();
+
+    const mm =
+        String(today.getMonth() + 1)
+        .padStart(2, "0");
+
+    const dd =
+        String(today.getDate())
+        .padStart(2, "0");
+
+    document.getElementById("matchDate")
+        .value = `${yyyy}-${mm}-${dd}`;
+
+    showScreen(1);
+}
+
+
+/* =====================================================
+   HELPERS
+===================================================== */
+
+function formatDate(value) {
+
+    if (!value) {
+        return "";
+    }
+
+    const parts = value.split("-");
+
+    if (parts.length !== 3) {
+        return value;
+    }
+
+    return `${parts[2]}.${parts[1]}.${parts[0]}`;
+}
+
+
+function escapeHtml(value) {
+
+    return String(value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
+
+function escapeJs(value) {
+
+    return String(value)
+        .replace(/\\/g, "\\\\")
+        .replace(/'/g, "\\'");
+}
+
+</script>
 
 </body>
 </html>
