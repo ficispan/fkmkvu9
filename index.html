@@ -1,144 +1,238 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="sk">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Match Stats Manager</title>
+
+    <title>FKM KV - Goals</title>
+
     <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
 
-    <div class="app-container">
-        
-        <!-- BRANDING HEADER -->
-        <div class="app-header">
-            <div class="logo-circle">FKM</div>
-            <div class="logo-text">KARLOVA VES</div>
-        </div>
+<div class="app">
 
-        <!-- SCREEN 1: MATCH CONFIGURATION -->
-        <div id="screen-1" class="screen active">
-            <div class="setup-form">
-                <div class="form-group">
-                    <label for="opponent-name">Opponent</label>
-                    <input type="text" id="opponent-name" value="" placeholder="Enter opponent name...">
-                </div>
-                
-                <div class="form-group">
-                    <label for="team-split">Squads</label>
-                    <select id="team-split">
-                        <option value="1">1</option>
-                        <option value="2" selected>2</option>
-                    </select>
-                </div>
+    <!-- =========================
+         SCREEN 1 - MATCH SETUP
+    ========================== -->
+    <section id="screen1" class="screen active">
 
-                <div id="coach-group" class="form-group">
-                    <label for="coach-select">Coach</label>
-                    <select id="coach-select">
-                        <option value="Peto V.">Peto V.</option>
-                        <option value="Peto Š.">Peto Š.</option>
-                    </select>
-                </div>
-
-                <button onclick="nextScreen(2)" class="btn-red-rect">Start</button>
+        <div class="top-bar">
+            <div class="club-logo">
+                <span>FKM</span>
+                <strong>KV</strong>
             </div>
         </div>
 
-        <!-- SCREEN 2: SQUAD NOMINATION -->
-        <div id="screen-2" class="screen">
-            <div class="screen-meta-bar">
-                <span>Coach: <strong id="meta-coach">Peto V.</strong></span>
-                <span>Selected: <strong id="selected-count">0</strong></span>
-            </div>
-            
-            <div id="squad-grid" class="squad-grid">
-                <!-- Dynamically generated via JavaScript -->
-            </div>
+        <div class="form-area">
 
-            <button onclick="startMatch()" class="btn-red-rect">Continue</button>
-        </div>
+            <label>Opponent</label>
+            <input
+                type="text"
+                id="opponent"
+                value="ŠK Slovan"
+            >
 
-        <!-- SCREEN 3: LIVE MATCH RUNTIME -->
-        <div id="screen-3" class="screen">
-            <div class="match-control-header">
-                <button onclick="nextScreen(2)" class="btn-icon-back">&lt;</button>
-                <button onclick="finishMatch()" class="btn-header-action">Output</button>
-                <div class="stopwatch-icon" onclick="toggleTimer()">⏱️</div>
-                <button onclick="resetScore()" class="btn-header-action">Score reset</button>
-            </div>
-            
-            <div class="match-live-banner">
-                <div id="timer-display" class="live-timer">00:00</div>
-                <div class="live-score-row">
-                    <span>FKM KV</span>
-                    <span id="live-score-text" class="live-score-numbers">0 : 0</span>
-                    <span id="live-opp-name">Opponent</span>
-                </div>
+            <label>Squads</label>
+
+            <div class="select-wrapper">
+                <select id="squads">
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                </select>
             </div>
 
-            <div id="scorers-rows-container" class="scorers-rows-list">
-                <!-- Interactive player rows for goal logs -->
+            <label>Coach</label>
+
+            <div class="select-wrapper">
+                <select id="coach">
+                    <option value="Peto V.">Peto V.</option>
+                    <option value="Mato K.">Mato K.</option>
+                </select>
             </div>
 
-            <div class="opponent-goal-section">
-                <button onclick="addOpponentGoal()" class="btn-add-opp-goal">+ Conceded Goal</button>
-            </div>
-        </div>
-
-        <!-- SCREEN 4: EXPORT RENDER OBJECT -->
-        <div id="screen-4" class="screen">
-            
-            <!-- EXPORT CARD BOUNDARY (IMAGE CAPTURE ZONE) -->
-            <div id="export-graphic-area" class="graphic-card">
-                <div class="graphic-header-banner">
-                    <div class="graphic-logo-box">FKM</div>
-                    <div class="graphic-match-info">
-                        <div class="graphic-date" id="graphic-current-date">03.10.2026</div>
-                        <div class="graphic-teams-score">
-                            FKM KV <span id="graph-score-span">0 : 0</span> <span id="graph-opp-span">Opponent</span>
-                        </div>
-                        <div class="graphic-team-coach" id="graph-coach-span">team: Peto V.</div>
-                    </div>
-                </div>
-                
-                <div class="graphic-body-content">
-                    <div class="graphic-goals-summary">
-                        <strong>Goals:</strong> <span id="graph-goals-text-summary">---</span>
-                    </div>
-
-                    <div id="jerseys-container-grid" class="jerseys-grid">
-                        <!-- Active squad array grid layout -->
-                    </div>
-
-                    <div class="goalkeeper-section">
-                        <div class="jersey-item goalkeeper">
-                            <div class="jersey-icon-svg">🧤</div>
-                            <div class="jersey-player-name" id="gk-name-display">Vrabec</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- CONFIGURATION AND CONTROLS (EXCLUDED FROM GRAPHIC RENDER) -->
-            <div class="non-export-controls">
-                <div class="dropdown-arrow-divider">
-                    <select id="theme-selector" class="minimal-select" onchange="changeGraphicTheme()">
-                        <option value="classic-red">🔴 Classic Red</option>
-                        <option value="dark-mode">⚫ Dark Mode</option>
-                    </select>
-                </div>
-                
-                <div class="footer-action-buttons">
-                    <button onclick="nextScreen(3)" class="btn-footer-secondary">Back</button>
-                    <button onclick="window.print()" class="btn-footer-secondary">📄 PDF</button>
-                    <button onclick="restartApp()" class="btn-footer-red">Restart</button>
-                </div>
-            </div>
+            <button class="primary-button" onclick="startMatch()">
+                Start
+            </button>
 
         </div>
 
-    </div>
+        <div class="bottom-strip"></div>
 
-    <script src="script.js"></script>
+    </section>
+
+
+    <!-- =========================
+         SCREEN 2 - PLAYER SELECTION
+    ========================== -->
+    <section id="screen2" class="screen">
+
+        <div class="top-bar navigation-bar">
+
+            <button class="nav-button" onclick="showScreen(1)">
+                ‹
+            </button>
+
+            <div class="club-logo small">
+                <span>FKM</span>
+                <strong>KV</strong>
+            </div>
+
+            <button class="nav-button">
+                ›
+            </button>
+
+        </div>
+
+        <div class="selection-info">
+
+            <span>
+                Coach: <span id="selectedCoach">Peto V.</span>
+            </span>
+
+            <span>
+                Selected: <span id="selectedCount">0</span>
+            </span>
+
+        </div>
+
+        <div id="playersGrid" class="players-grid">
+            <!-- Players generated by JavaScript -->
+        </div>
+
+        <div class="bottom-strip"></div>
+
+    </section>
+
+
+    <!-- =========================
+         SCREEN 3 - GOALS
+    ========================== -->
+    <section id="screen3" class="screen">
+
+        <div class="score-header">
+
+            <button class="header-button" onclick="showScreen(2)">
+                ‹
+            </button>
+
+            <button class="output-button" onclick="showOutput()">
+                Output
+            </button>
+
+            <div class="stopwatch-icon">
+                ⏱
+            </div>
+
+            <button class="reset-button" onclick="resetScore()">
+                Score reset
+            </button>
+
+            <div class="timer">
+                00:00
+            </div>
+
+            <div class="score-line">
+                <span>FKM KV</span>
+                <strong id="homeScore">9</strong>
+                :
+                <strong id="awayScore">5</strong>
+                <span id="opponentName">ŠK Slovan</span>
+            </div>
+
+        </div>
+
+        <div id="scoreRows" class="score-rows">
+            <!-- Generated by JS -->
+        </div>
+
+        <div class="bottom-strip"></div>
+
+    </section>
+
+
+    <!-- =========================
+         SCREEN 4 - OUTPUT
+    ========================== -->
+    <section id="screen4" class="screen">
+
+        <div class="output-header">
+
+            <div class="output-logo">
+                <div class="club-logo">
+                    <span>FKM</span>
+                    <strong>KV</strong>
+                </div>
+            </div>
+
+            <div class="output-score">
+
+                <div class="date">
+                    03.10.2026
+                </div>
+
+                <div class="teams">
+                    <strong>FKM KV</strong>
+                    <span>9 : 5</span>
+                    <strong id="outputOpponent">
+                        ŠK Slovan
+                    </strong>
+                </div>
+
+                <div class="output-coach">
+                    team: Peto V.
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="goals-summary">
+
+            <span>Góly:</span>
+
+            <span id="goalsText">
+                Gejdoš 3, Gudkov 2, Kytka 2, Montoya, ŠK Slovan vl.
+            </span>
+
+        </div>
+
+        <div id="field" class="field">
+
+            <!-- players generated by JS -->
+
+        </div>
+
+        <div class="output-select">
+            <select>
+                <option></option>
+            </select>
+        </div>
+
+        <div class="output-buttons">
+
+            <button class="back-button" onclick="showScreen(3)">
+                Back
+            </button>
+
+            <button class="pdf-button">
+                PDF
+            </button>
+
+            <button class="restart-button" onclick="restartGame()">
+                Restart
+            </button>
+
+        </div>
+
+        <div class="bottom-strip"></div>
+
+    </section>
+
+</div>
+
+<script src="script.js"></script>
+
 </body>
 </html>
