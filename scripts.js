@@ -1,3 +1,7 @@
+/* ==================================================
+   DATA
+================================================== */
+
 const players = [
     "Bartoš",
     "Čičatka",
@@ -27,408 +31,994 @@ const players = [
     "Zukal"
 ];
 
-let selectedPlayers = [];
 
-let scores = {};
+/* ==================================================
+   APPLICATION STATE
+================================================== */
 
-let match = {
+const game = {
+
     opponent: "ŠK Slovan",
-    coach: "Peto V."
+
+    squads: 1,
+
+    coach: "",
+
+    selectedPlayers: [],
+
+    goals: {},
+
+    opponentOwnGoals: 0,
+
+    awayScore: 0,
+
+    timerSeconds: 0,
+
+    timerRunning: false,
+
+    timerInterval: null
+
 };
 
 
-/* =========================
+/* ==================================================
+   ELEMENTS
+================================================== */
+
+const opponentInput =
+    document.getElementById("opponent");
+
+const squadsSelect =
+    document.getElementById("squads");
+
+const coachGroup =
+    document.getElementById("coachGroup");
+
+const coachSelect =
+    document.getElementById("coach");
+
+const startButton =
+    document.getElementById("startButton");
+
+const playersGrid =
+    document.getElementById("playersGrid");
+
+const selectedCount =
+    document.getElementById("selectedCount");
+
+const selectionCoach =
+    document.getElementById("selectionCoach");
+
+const scoreRows =
+    document.getElementById("scoreRows");
+
+const homeScore =
+    document.getElementById("homeScore");
+
+const awayScore =
+    document.getElementById("awayScore");
+
+const gameOpponent =
+    document.getElementById("gameOpponent");
+
+const timerDisplay =
+    document.getElementById("timerDisplay");
+
+const outputOpponent =
+    document.getElementById("outputOpponent");
+
+const outputScore =
+    document.getElementById("outputScore");
+
+const outputCoach =
+    document.getElementById("outputCoach");
+
+const outputDate =
+    document.getElementById("outputDate");
+
+const goalsText =
+    document.getElementById("goalsText");
+
+const field =
+    document.getElementById("field");
+
+
+/* ==================================================
    SCREEN NAVIGATION
-========================= */
+================================================== */
 
 function showScreen(number) {
 
-    document.querySelectorAll(".screen").forEach(screen => {
-        screen.classList.remove("active");
-    });
-
     document
-        .getElementById("screen" + number)
-        .classList.add("active");
+        .querySelectorAll(".screen")
+        .forEach(screen => {
+            screen.classList.remove("active");
+        });
+
+    const target =
+        document.getElementById(`screen${number}`);
+
+    if (target) {
+        target.classList.add("active");
+    }
 }
 
 
-/* =========================
-   START MATCH
-========================= */
+/* ==================================================
+   SCREEN 1
+   SQUADS / COACH
+================================================== */
+
+function updateCoachVisibility() {
+
+    const squads =
+        Number(squadsSelect.value);
+
+    game.squads = squads;
+
+    if (squads === 2) {
+
+        coachGroup.classList.remove("hidden");
+
+    } else {
+
+        coachGroup.classList.add("hidden");
+
+        game.coach = "";
+    }
+}
+
+
+squadsSelect.addEventListener(
+    "change",
+    updateCoachVisibility
+);
+
+
+startButton.addEventListener(
+    "click",
+    startMatch
+);
+
 
 function startMatch() {
 
-    match.opponent =
-        document.getElementById("opponent").value || "Opponent";
+    game.opponent =
+        opponentInput.value.trim() || "Opponent";
 
-    match.coach =
-        document.getElementById("coach").value;
+    game.squads =
+        Number(squadsSelect.value);
 
-    document.getElementById("selectedCoach").textContent =
-        match.coach;
 
-    createPlayers();
+    if (game.squads === 2) {
+
+        game.coach =
+            coachSelect.value;
+
+    } else {
+
+        game.coach = "";
+    }
+
+
+    game.selectedPlayers = [];
+
+    game.goals = {};
+
+    game.opponentOwnGoals = 0;
+
+    game.awayScore = 0;
+
+
+    game.playersRendered = false;
+
+
+    renderPlayers();
+
+    updateSelectionHeader();
 
     showScreen(2);
 }
 
 
-/* =========================
+/* ==================================================
+   SCREEN 2
    PLAYER SELECTION
-========================= */
+================================================== */
 
-function createPlayers() {
+function renderPlayers() {
 
-    const grid =
-        document.getElementById("playersGrid");
+    playersGrid.innerHTML = "";
 
-    grid.innerHTML = "";
 
     players.forEach(player => {
 
         const button =
             document.createElement("button");
 
-        button.className = "player-button";
+        button.type = "button";
 
-        button.textContent = player;
+        button.className =
+            "player-button";
 
-        button.onclick = () =>
-            togglePlayer(player, button);
 
-        grid.appendChild(button);
+        if (
+            game.selectedPlayers.includes(player)
+        ) {
+
+            button.classList.add("selected");
+        }
+
+
+        button.textContent =
+            player;
+
+
+        button.addEventListener(
+            "click",
+            () => togglePlayer(player, button)
+        );
+
+
+        playersGrid.appendChild(button);
     });
-
-    updateSelectedCount();
 }
 
 
 function togglePlayer(player, button) {
 
-    if (selectedPlayers.includes(player)) {
+    const index =
+        game.selectedPlayers.indexOf(player);
 
-        selectedPlayers =
-            selectedPlayers.filter(p => p !== player);
 
-        button.classList.remove("selected");
+    if (index === -1) {
+
+        game.selectedPlayers.push(player);
+
+        game.goals[player] =
+            game.goals[player] || 0;
+
+        button.classList.add("selected");
 
     } else {
 
-        selectedPlayers.push(player);
+        game.selectedPlayers.splice(index, 1);
 
-        button.classList.add("selected");
+        delete game.goals[player];
+
+        button.classList.remove("selected");
     }
 
-    updateSelectedCount();
+
+    updateSelectionHeader();
 }
 
 
-function updateSelectedCount() {
+function updateSelectionHeader() {
 
-    document.getElementById("selectedCount").textContent =
-        selectedPlayers.length;
+    selectedCount.textContent =
+        game.selectedPlayers.length;
+
+
+    if (game.squads === 2) {
+
+        selectionCoach.textContent =
+            `Coach: ${game.coach}`;
+
+    } else {
+
+        selectionCoach.textContent = "";
+    }
 }
 
 
-/* =========================
-   GOAL SCREEN
-========================= */
+/* ==================================================
+   SCREEN 2 NAVIGATION
+================================================== */
 
-function showGoals() {
+document
+    .getElementById("playersBack")
+    .addEventListener(
+        "click",
+        () => showScreen(1)
+    );
 
-    selectedPlayers.forEach(player => {
 
-        if (!(player in scores)) {
-            scores[player] = 0;
+document
+    .getElementById("playersNext")
+    .addEventListener(
+        "click",
+        () => {
+
+            if (
+                game.selectedPlayers.length === 0
+            ) {
+
+                alert(
+                    "Vyber aspoň jedného hráča."
+                );
+
+                return;
+            }
+
+
+            renderScoreRows();
+
+            updateScore();
+
+            showScreen(3);
         }
-
-    });
-
-    createScoreRows();
-
-    document.getElementById("opponentName").textContent =
-        match.opponent;
-
-    showScreen(3);
-}
+    );
 
 
-function createScoreRows() {
+/* ==================================================
+   SCREEN 3
+   SCORE
+================================================== */
 
-    const container =
-        document.getElementById("scoreRows");
+function renderScoreRows() {
 
-    container.innerHTML = "";
+    scoreRows.innerHTML = "";
 
-    selectedPlayers.forEach(player => {
 
-        const row =
-            document.createElement("div");
+    game.selectedPlayers.forEach(
+        player => {
 
-        row.className = "score-row";
+            const row =
+                document.createElement("div");
 
-        row.innerHTML = `
-            <div class="score-player">${player}</div>
+            row.className =
+                "score-row";
 
-            <div
-                class="score-number"
-                id="score-${player}"
-            >
-                ${scores[player] || 0}
-            </div>
 
-            <button
-                class="plus"
-                onclick="addGoal('${player}')"
-            >
-                +
-            </button>
+            row.innerHTML = `
 
-            <button
-                class="minus"
-                onclick="removeGoal('${player}')"
-            >
-                −
-            </button>
-        `;
+                <div class="score-player">
+                    ${player}
+                </div>
 
-        container.appendChild(row);
-    });
+                <div
+                    class="score-number"
+                    id="goal-${escapeId(player)}"
+                >
+                    ${game.goals[player] || 0}
+                </div>
+
+                <button
+                    class="goal-button"
+                    data-player="${player}"
+                    data-action="plus"
+                >
+                    +
+                </button>
+
+                <button
+                    class="goal-button"
+                    data-player="${player}"
+                    data-action="minus"
+                >
+                    −
+                </button>
+            `;
+
+
+            scoreRows.appendChild(row);
+        }
+    );
+
 
     /* Opponent own goal */
-    const opponentRow =
+
+    const ownGoalRow =
         document.createElement("div");
 
-    opponentRow.className = "score-row";
+    ownGoalRow.className =
+        "score-row";
 
-    opponentRow.innerHTML = `
+
+    ownGoalRow.innerHTML = `
+
         <div class="score-player">
-            ${match.opponent} vl.
+            ${game.opponent} vl.
         </div>
 
         <div
             class="score-number"
-            id="score-own"
+            id="own-goal-count"
         >
-            0
+            ${game.opponentOwnGoals}
         </div>
 
         <button
-            class="plus"
-            onclick="addOwnGoal()"
+            class="goal-button"
+            data-own-goal="plus"
         >
             +
         </button>
 
         <button
-            class="minus"
-            onclick="removeOwnGoal()"
+            class="goal-button"
+            data-own-goal="minus"
         >
             −
         </button>
     `;
 
-    container.appendChild(opponentRow);
+
+    scoreRows.appendChild(ownGoalRow);
+
+
+    scoreRows
+        .querySelectorAll(
+            "[data-player]"
+        )
+        .forEach(button => {
+
+            button.addEventListener(
+                "click",
+                () => {
+
+                    const player =
+                        button.dataset.player;
+
+                    const action =
+                        button.dataset.action;
+
+
+                    changePlayerGoals(
+                        player,
+                        action
+                    );
+                }
+            );
+        });
+
+
+    scoreRows
+        .querySelectorAll(
+            "[data-own-goal]"
+        )
+        .forEach(button => {
+
+            button.addEventListener(
+                "click",
+                () => {
+
+                    changeOwnGoals(
+                        button.dataset.ownGoal
+                    );
+                }
+            );
+        });
 }
 
 
-function addGoal(player) {
+function changePlayerGoals(
+    player,
+    action
+) {
 
-    scores[player] =
-        (scores[player] || 0) + 1;
-
-    updateScoreDisplay();
-}
-
-
-function removeGoal(player) {
-
-    if ((scores[player] || 0) > 0) {
-        scores[player]--;
+    if (!game.goals[player]) {
+        game.goals[player] = 0;
     }
 
-    updateScoreDisplay();
-}
 
+    if (action === "plus") {
 
-let ownGoals = 0;
+        game.goals[player]++;
 
+    } else {
 
-function addOwnGoal() {
-
-    ownGoals++;
-
-    updateScoreDisplay();
-}
-
-
-function removeOwnGoal() {
-
-    if (ownGoals > 0) {
-        ownGoals--;
+        game.goals[player] =
+            Math.max(
+                0,
+                game.goals[player] - 1
+            );
     }
 
-    updateScoreDisplay();
+
+    renderScoreRows();
+
+    updateScore();
 }
 
 
-function updateScoreDisplay() {
+function changeOwnGoals(action) {
 
-    let homeScore = 0;
+    if (action === "plus") {
 
-    selectedPlayers.forEach(player => {
-        homeScore += scores[player] || 0;
-    });
+        game.opponentOwnGoals++;
 
-    document.getElementById("homeScore").textContent =
-        homeScore;
+    } else {
 
-    document.getElementById("awayScore").textContent =
-        0 + ownGoals;
+        game.opponentOwnGoals =
+            Math.max(
+                0,
+                game.opponentOwnGoals - 1
+            );
+    }
 
-    selectedPlayers.forEach(player => {
 
-        const element =
-            document.getElementById("score-" + player);
+    renderScoreRows();
 
-        if (element) {
-            element.textContent =
-                scores[player] || 0;
+    updateScore();
+}
+
+
+function updateScore() {
+
+    let homeGoals = 0;
+
+
+    game.selectedPlayers.forEach(
+        player => {
+
+            homeGoals +=
+                game.goals[player] || 0;
         }
-    });
+    );
 
-    const ownElement =
-        document.getElementById("score-own");
 
-    if (ownElement) {
-        ownElement.textContent = ownGoals;
-    }
+    /*
+        Opponent own goals are goals
+        for FKM KV.
+    */
+
+    homeGoals +=
+        game.opponentOwnGoals;
+
+
+    homeScore.textContent =
+        homeGoals;
+
+
+    awayScore.textContent =
+        game.awayScore;
+
+
+    gameOpponent.textContent =
+        game.opponent;
 }
 
 
-/* =========================
-   RESET
-========================= */
+/* ==================================================
+   SCORE RESET
+================================================== */
+
+document
+    .getElementById("resetButton")
+    .addEventListener(
+        "click",
+        resetScore
+    );
+
 
 function resetScore() {
 
-    scores = {};
-    ownGoals = 0;
+    game.selectedPlayers.forEach(
+        player => {
+            game.goals[player] = 0;
+        }
+    );
 
-    selectedPlayers.forEach(player => {
-        scores[player] = 0;
-    });
 
-    createScoreRows();
-    updateScoreDisplay();
+    game.opponentOwnGoals = 0;
+
+    game.awayScore = 0;
+
+
+    renderScoreRows();
+
+    updateScore();
 }
 
 
-/* =========================
+/* ==================================================
+   SCREEN 3 BACK
+================================================== */
+
+document
+    .getElementById("goalsBack")
+    .addEventListener(
+        "click",
+        () => showScreen(2)
+    );
+
+
+/* ==================================================
+   STOPWATCH
+================================================== */
+
+document
+    .getElementById("timerButton")
+    .addEventListener(
+        "click",
+        toggleTimer
+    );
+
+
+function toggleTimer() {
+
+    if (game.timerRunning) {
+
+        stopTimer();
+
+    } else {
+
+        startTimer();
+    }
+}
+
+
+function startTimer() {
+
+    if (game.timerRunning) {
+        return;
+    }
+
+
+    game.timerRunning = true;
+
+
+    game.timerInterval =
+        setInterval(
+            () => {
+
+                game.timerSeconds++;
+
+                updateTimerDisplay();
+
+            },
+            1000
+        );
+}
+
+
+function stopTimer() {
+
+    game.timerRunning = false;
+
+
+    clearInterval(
+        game.timerInterval
+    );
+
+
+    game.timerInterval = null;
+}
+
+
+function updateTimerDisplay() {
+
+    const minutes =
+        Math.floor(
+            game.timerSeconds / 60
+        );
+
+
+    const seconds =
+        game.timerSeconds % 60;
+
+
+    timerDisplay.textContent =
+        `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+}
+
+
+/* ==================================================
    OUTPUT
-========================= */
+================================================== */
+
+document
+    .getElementById("outputButton")
+    .addEventListener(
+        "click",
+        showOutput
+    );
+
 
 function showOutput() {
 
-    document.getElementById("outputOpponent").textContent =
-        match.opponent;
+    updateScore();
 
-    createOutputField();
+    renderOutputHeader();
 
-    createGoalsSummary();
+    renderGoalsSummary();
+
+    renderField();
 
     showScreen(4);
 }
 
 
-function createOutputField() {
+/* ==================================================
+   OUTPUT HEADER
+================================================== */
 
-    const field =
-        document.getElementById("field");
+function renderOutputHeader() {
 
-    field.innerHTML = "";
+    outputOpponent.textContent =
+        game.opponent;
 
-    const positions = [
-        [35, 5],
-        [65, 5],
-        [35, 42],
-        [65, 42],
-        [35, 79],
-        [65, 79],
-        [50, 112]
-    ];
 
-    selectedPlayers
-        .slice(0, positions.length)
-        .forEach((player, index) => {
+    outputScore.textContent =
+        `${homeScore.textContent} : ${awayScore.textContent}`;
 
-            const playerElement =
-                document.createElement("div");
 
-            playerElement.className =
-                "jersey-player";
+    outputDate.textContent =
+        getCurrentDate();
 
-            playerElement.style.left =
-                positions[index][0] + "%";
 
-            playerElement.style.top =
-                positions[index][1] + "px";
+    if (game.squads === 2) {
 
-            playerElement.innerHTML = `
-                <div class="jersey"></div>
-                <div>${player}</div>
-            `;
+        outputCoach.textContent =
+            `team: ${game.coach}`;
 
-            field.appendChild(playerElement);
-        });
+    } else {
+
+        outputCoach.textContent = "";
+    }
 }
 
 
-function createGoalsSummary() {
+/* ==================================================
+   OUTPUT DATE
+================================================== */
 
-    const goalScorers = [];
+function getCurrentDate() {
 
-    selectedPlayers.forEach(player => {
+    const date =
+        new Date();
 
-        const count = scores[player] || 0;
 
-        if (count > 0) {
+    const day =
+        String(
+            date.getDate()
+        ).padStart(2, "0");
 
-            if (count === 1) {
-                goalScorers.push(player);
-            } else {
-                goalScorers.push(
-                    `${player} ${count}`
-                );
+
+    const month =
+        String(
+            date.getMonth() + 1
+        ).padStart(2, "0");
+
+
+    const year =
+        date.getFullYear();
+
+
+    return `${day}.${month}.${year}`;
+}
+
+
+/* ==================================================
+   GOAL SUMMARY
+================================================== */
+
+function renderGoalsSummary() {
+
+    const summary = [];
+
+
+    game.selectedPlayers.forEach(
+        player => {
+
+            const count =
+                game.goals[player] || 0;
+
+
+            if (count > 0) {
+
+                if (count === 1) {
+
+                    summary.push(player);
+
+                } else {
+
+                    summary.push(
+                        `${player} ${count}`
+                    );
+                }
             }
         }
-    });
+    );
 
-    if (ownGoals > 0) {
 
-        goalScorers.push(
-            `${match.opponent} vl.`
+    if (game.opponentOwnGoals > 0) {
+
+        summary.push(
+            `${game.opponent} vl.`
         );
     }
 
-    document.getElementById("goalsText").textContent =
-        goalScorers.join(", ");
+
+    goalsText.textContent =
+        summary.length > 0
+            ? summary.join(", ")
+            : "-";
 }
 
 
-/* =========================
+/* ==================================================
+   OUTPUT FIELD
+================================================== */
+
+function renderField() {
+
+    field.innerHTML = "";
+
+
+    /*
+        Positions are based on the
+        screenshot.
+
+        No goalkeeper.
+    */
+
+    const positions = [
+
+        { x: 25, y: 7 },
+
+        { x: 67, y: 7 },
+
+        { x: 25, y: 48 },
+
+        { x: 67, y: 48 },
+
+        { x: 25, y: 89 },
+
+        { x: 67, y: 89 },
+
+        { x: 46, y: 130 }
+
+    ];
+
+
+    game.selectedPlayers
+        .slice(
+            0,
+            positions.length
+        )
+        .forEach(
+            (player, index) => {
+
+                const position =
+                    positions[index];
+
+
+                const playerElement =
+                    document.createElement("div");
+
+
+                playerElement.className =
+                    "field-player";
+
+
+                playerElement.style.left =
+                    `${position.x}%`;
+
+
+                playerElement.style.top =
+                    `${position.y}px`;
+
+
+                playerElement.innerHTML = `
+
+                    <div class="jersey"></div>
+
+                    <div>
+                        ${player}
+                    </div>
+                `;
+
+
+                field.appendChild(
+                    playerElement
+                );
+            }
+        );
+}
+
+
+/* ==================================================
+   OUTPUT BACK
+================================================== */
+
+document
+    .getElementById("outputBack")
+    .addEventListener(
+        "click",
+        () => {
+
+            renderScoreRows();
+
+            updateScore();
+
+            showScreen(3);
+        }
+    );
+
+
+/* ==================================================
    RESTART
-========================= */
+================================================== */
+
+document
+    .getElementById("restartButton")
+    .addEventListener(
+        "click",
+        restartGame
+    );
+
 
 function restartGame() {
 
-    selectedPlayers = [];
-    scores = {};
-    ownGoals = 0;
+    stopTimer();
 
-    document.getElementById("opponent").value =
+
+    game.opponent =
         "ŠK Slovan";
+
+    game.squads =
+        1;
+
+    game.coach =
+        "";
+
+    game.selectedPlayers =
+        [];
+
+    game.goals =
+        {};
+
+    game.opponentOwnGoals =
+        0;
+
+    game.awayScore =
+        0;
+
+    game.timerSeconds =
+        0;
+
+
+    opponentInput.value =
+        "ŠK Slovan";
+
+
+    squadsSelect.value =
+        "1";
+
+
+    coachSelect.value =
+        "Peťo Šiko";
+
+
+    updateCoachVisibility();
+
+    updateTimerDisplay();
 
     showScreen(1);
 }
+
+
+/* ==================================================
+   HELPER
+================================================== */
+
+function escapeId(text) {
+
+    return text
+        .replace(
+            /[^a-zA-Z0-9]/g,
+            "-"
+        );
+}
+
+
+/* ==================================================
+   INITIALIZATION
+================================================== */
+
+updateCoachVisibility();
+
+updateTimerDisplay();
