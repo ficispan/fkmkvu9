@@ -585,7 +585,6 @@ function resetMatch() {
   state.currentScreen = "setup";
 
   $("#setup-form").reset();
-  $("#player-search").value = "";
   $("#coach-field").classList.add("hidden");
 
   showScreen("setup");
