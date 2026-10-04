@@ -1,171 +1,194 @@
 <!doctype html>
 <html lang="sk">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#c9282b">
-  <meta name="description" content="Zápisník futbalového zápasu FKM Karlova Ves">
-  <title>Zápisník zápasu | FKM Karlova Ves</title>
-  <link rel="stylesheet" href="./styles.css">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#c9282b">
+<meta name="description" content="Zápisník futbalového zápasu FKM Karlova Ves">
+<title>Zápisník zápasu | FKM Karlova Ves</title>
+<link rel="stylesheet" href="./styles.css">
 </head>
 <body>
-  <div class="app-shell">
-    <header class="brandbar">
-      <button class="header-nav-button" id="back-to-setup" type="button" aria-label="Späť na nastavenie zápasu">
-        <span aria-hidden="true">‹</span>
-      </button>
+<div class="app-shell">
+<header class="brandbar">
+<img class="brand-logo" src="./karlovka.png" alt="FKM Karlova Ves">
+</header>
 
-      <img class="brand-logo" src="./karlovka.png" alt="FKM Karlova Ves">
+<main>
+<section class="screen active" id="screen-setup" aria-labelledby="setup-title">
+<div class="screen-heading">
+<p class="eyebrow">FKM Karlova Ves</p>
+<h1 id="setup-title">Nový zápas</h1>
+<p class="muted">Najskôr vyplň základné údaje.</p>
+</div>
 
-      <button class="header-nav-button header-nav-next" id="start-match" type="button" aria-label="Začať zápas">
-        <span aria-hidden="true">›</span>
-      </button>
-    </header>
+<form id="setup-form" class="card form-card">
+<label for="opponent">Názov súpera</label>
+<input id="opponent" name="opponent" type="text" placeholder="Napr. ŠK Slovan" required maxlength="40">
 
-    <main>
-      <section class="screen active" id="screen-setup" aria-labelledby="setup-title">
-        <div class="screen-heading">
-          <p class="eyebrow">FKM Karlova Ves</p>
-          <h1 id="setup-title">Nový zápas</h1>
-          <p class="muted">Najskôr vyplň základné údaje.</p>
-        </div>
+<label for="squads">Počet tímov Karlovky</label>
+<select id="squads" name="squads">
+<option value="1">1</option>
+<option value="2">2</option>
+</select>
 
-        <form id="setup-form" class="card form-card">
-          <label for="opponent">Názov súpera</label>
-          <input id="opponent" name="opponent" type="text" placeholder="Napr. ŠK Slovan" required maxlength="40">
+<div id="coach-field" class="conditional-field hidden">
+<label for="coach">Tréner</label>
+<select id="coach" name="coach">
+<option value="Peter Šiko">Peter Šiko</option>
+<option value="Peter Vrabec">Peter Vrabec</option>
+</select>
+</div>
 
-          <label for="squads">Počet tímov Karlovky</label>
-          <select id="squads" name="squads">
-            <option value="1">1</option>
-            <option value="2">2</option>
-          </select>
+<button class="button primary full-width" type="submit">Pokračovať</button>
+</form>
+</section>
 
-          <div id="coach-field" class="conditional-field hidden">
-            <label for="coach">Tréner</label>
-            <select id="coach" name="coach">
-              <option value="Peter Šiko">Peter Šiko</option>
-              <option value="Peter Vrabec">Peter Vrabec</option>
-            </select>
-          </div>
+<section class="screen" id="screen-lineup" aria-labelledby="lineup-title" hidden>
+<div class="screen-heading">
+<p class="eyebrow">Krok 2 z 4</p>
+<h1 id="lineup-title">Nominácia</h1>
+<p class="muted">Vyber hráčov, ktorí nastúpia.</p>
+</div>
 
-          <button class="button primary full-width" type="submit">Pokračovať</button>
-        </form>
-      </section>
+<div class="card">
+<div class="selection-summary">
+<span>Nominácia hráčov</span>
+<strong><span id="selected-count">0</span> vybraných</strong>
+</div>
 
-      <section class="screen" id="screen-lineup" aria-labelledby="lineup-title" hidden>
-        <div class="lineup-heading">
-          <div class="screen-heading">
-            <p class="eyebrow">Krok 2 z 4</p>
-            <h1 id="lineup-title">Nominácia</h1>
-            <p class="muted">Vyber hráčov, ktorí nastúpia.</p>
-          </div>
+<label class="sr-only" for="player-search">Hľadať hráča</label>
+<input id="player-search" type="search" placeholder="Hľadať hráča…" autocomplete="off">
 
-          <strong class="lineup-selected-count">
-            <span id="selected-count">0</span> vybraných
-          </strong>
-        </div>
+<div id="player-list" class="player-grid" aria-label="Zoznam hráčov"></div>
 
-        <div class="card">
-          <div id="player-list" class="player-grid" aria-label="Zoznam hráčov"></div>
-        </div>
-      </section>
+<div class="button-row">
+<button class="button secondary" id="back-to-setup" type="button">Späť</button>
+<button class="button primary" id="start-match" type="button">Začať zápas</button>
+</div>
+</div>
+</section>
 
-      <section class="screen" id="screen-match" aria-labelledby="match-title" hidden>
-        <div class="match-topbar">
-          <button class="icon-button" id="back-to-lineup" type="button" aria-label="Späť na nomináciu">‹</button>
-          <div class="timer-wrap">
-            <span class="timer-label">ČAS ZÁPASU</span>
-            <strong id="timer-display">00:00</strong>
-          </div>
-          <button class="button small-button light-button" id="go-to-output" type="button">Výstup</button>
-        </div>
+<section class="screen" id="screen-match" aria-labelledby="match-title" hidden>
+<div class="match-topbar">
+<button class="icon-button" id="back-to-lineup" type="button" aria-label="Späť na nomináciu">‹</button>
+<div class="timer-wrap">
+<span class="timer-label">ČAS ZÁPASU</span>
+<strong id="timer-display">00:00</strong>
+</div>
+<button class="button small-button light-button" id="go-to-output" type="button">Výstup</button>
+</div>
 
-        <div class="scoreboard">
-          <div class="team-name">FKM Karlova Ves</div>
-          <div class="score">
-            <span id="home-score">0</span>
-            <span class="score-dash">:</span>
-            <span id="away-score">0</span>
-          </div>
-          <div class="team-name" id="away-team-name">Súper</div>
-        </div>
+<div class="scoreboard">
+<div class="team-name">FKM Karlova Ves</div>
+<div class="score">
+<span id="home-score">0</span>
+<span class="score-dash">:</span>
+<span id="away-score">0</span>
+</div>
+<div class="team-name" id="away-team-name">Súper</div>
+</div>
 
-        <div class="timer-controls">
-          <button class="button primary" id="timer-toggle" type="button">Spustiť stopky</button>
-          <button class="button secondary" id="timer-reset" type="button">Vynulovať čas</button>
-          <button class="button secondary" id="score-reset" type="button">Vynulovať góly</button>
-        </div>
+<div class="timer-controls">
+<button class="button primary" id="timer-toggle" type="button">Spustiť stopky</button>
+<button class="button secondary" id="timer-reset" type="button">Vynulovať čas</button>
+<button class="button secondary" id="score-reset" type="button">Vynulovať góly</button>
+</div>
 
-        <div class="card">
-          <div class="section-title-row">
-            <h2>Góly FKM Karlova Ves</h2>
-            <span class="muted small-text">Tlačidlom + pridáš gól</span>
-          </div>
-          <div id="scorer-list" class="scorer-list"></div>
-        </div>
+<div class="card">
+<div class="section-title-row">
+<h2>Góly FKM Karlova Ves</h2>
+<span class="muted small-text">Tlačidlom + pridáš gól</span>
+</div>
+<div id="scorer-list" class="scorer-list"></div>
+</div>
 
-        <div class="opponent-dock">
+<div class="opponent-dock">
+          <label for="opponent-scorer" id="opponent-scorer-label"></label>
+        
+          <input
+            id="opponent-scorer"
+            type="text"
+            placeholder="Zadaj strelca súpera"
+            maxlength="40"
+            aria-label="Meno strelca gólu súpera"
+          >
+        
+          <button
+            class="dock-goal-button"
+            id="opponent-goal-add"
+            type="button"
+            aria-label="Pridať gól súperovi"
+          >＋</button>
+        
+          <button
+            class="dock-goal-button"
+            id="opponent-goal-remove"
+            type="button"
+            aria-label="Odobrať gól súperovi"
+          >−</button>
           <span class="opponent-dock-name" id="opponent-dock-name">Súper</span>
           <span class="opponent-dock-count" id="opponent-goal-count">0</span>
           <button class="dock-goal-button" id="opponent-goal-add" type="button" aria-label="Pridať súperovi gól">+</button>
           <button class="dock-goal-button" id="opponent-goal-remove" type="button" aria-label="Odobrať súperovi gól">−</button>
-        </div>
-      </section>
+</div>
 
-      <section class="screen" id="screen-output" aria-labelledby="output-title" hidden>
-        <div class="screen-heading output-heading">
-          <p class="eyebrow">Zápas ukončený</p>
-          <h1 id="output-title">Výsledok zápasu</h1>
-          <p class="muted">Zdieľaj alebo ulož súhrn zápasu.</p>
-        </div>
+</section>
 
-        <article class="match-poster" id="match-poster">
-          <div class="poster-header">
-            <div class="poster-crest" aria-hidden="true">FKM</div>
-            <div class="poster-meta">
-              <span id="poster-date"></span>
-              <span id="poster-coach"></span>
-            </div>
-          </div>
+<section class="screen" id="screen-output" aria-labelledby="output-title" hidden>
+<div class="screen-heading output-heading">
+<p class="eyebrow">Zápas ukončený</p>
+<h1 id="output-title">Výsledok zápasu</h1>
+<p class="muted">Zdieľaj alebo ulož súhrn zápasu.</p>
+</div>
 
-          <div class="poster-score">
-            <div>
-              <span class="poster-team">FKM Karlova Ves</span>
-              <strong id="poster-home-score">0</strong>
-            </div>
-            <span class="poster-colon">:</span>
-            <div>
-              <span class="poster-team" id="poster-opponent">Súper</span>
-              <strong id="poster-away-score">0</strong>
-            </div>
-          </div>
+<article class="match-poster" id="match-poster">
+<div class="poster-header">
+<div class="poster-crest" aria-hidden="true">FKM</div>
+<div class="poster-meta">
+<span id="poster-date"></span>
+<span id="poster-coach"></span>
+</div>
+</div>
 
-          <div class="poster-goals">
-            <h2>Góly</h2>
-            <p id="poster-goals-text">Zatiaľ bez gólov.</p>
-          </div>
+<div class="poster-score">
+<div>
+<span class="poster-team">FKM Karlova Ves</span>
+<strong id="poster-home-score">0</strong>
+</div>
+<span class="poster-colon">:</span>
+<div>
+<span class="poster-team" id="poster-opponent">Súper</span>
+<strong id="poster-away-score">0</strong>
+</div>
+</div>
 
-          <div class="poster-lineup">
-            <h2>Nominácia</h2>
-            <div id="poster-players" class="poster-player-grid"></div>
-          </div>
+<div class="poster-goals">
+<h2>Góly</h2>
+<p id="poster-goals-text">Zatiaľ bez gólov.</p>
+</div>
 
-          <footer class="poster-footer">FKM KARLOVA VES</footer>
-        </article>
+<div class="poster-lineup">
+<h2>Nominácia</h2>
+<div id="poster-players" class="poster-player-grid"></div>
+</div>
 
-        <div class="output-actions">
-          <button class="button secondary" id="back-to-match" type="button">Späť k zápasu</button>
-          <button class="button primary" id="download-image" type="button">Uložiť obrázok</button>
-          <button class="button secondary" id="share-image" type="button">Zdieľať</button>
-          <button class="button danger" id="restart-match" type="button">Nový zápas</button>
-        </div>
-      </section>
-    </main>
+<footer class="poster-footer">FKM KARLOVA VES</footer>
+</article>
 
-    <footer class="app-footer">FKM Karlova Ves · Score tracker</footer>
-  </div>
+<div class="output-actions">
+<button class="button secondary" id="back-to-match" type="button">Späť k zápasu</button>
+<button class="button primary" id="download-image" type="button">Uložiť obrázok</button>
+<button class="button secondary" id="share-image" type="button">Zdieľať</button>
+<button class="button danger" id="restart-match" type="button">Nový zápas</button>
+</div>
+</section>
+</main>
 
-  <div id="toast" class="toast" role="status" aria-live="polite"></div>
-  <script src="./scripts.js"></script>
+<footer class="app-footer">FKM Karlova Ves · Score tracker</footer>
+</div>
+
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+<script src="./scripts.js"></script>
 </body>
 </html>
