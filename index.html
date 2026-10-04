@@ -11,7 +11,15 @@
 <body>
   <div class="app-shell">
     <header class="brandbar">
+      <button class="header-nav-button" id="back-to-setup" type="button" aria-label="Späť na nastavenie zápasu">
+        <span aria-hidden="true">‹</span>
+      </button>
+
       <img class="brand-logo" src="./karlovka.png" alt="FKM Karlova Ves">
+
+      <button class="header-nav-button header-nav-next" id="start-match" type="button" aria-label="Začať zápas">
+        <span aria-hidden="true">›</span>
+      </button>
     </header>
 
     <main>
@@ -45,27 +53,20 @@
       </section>
 
       <section class="screen" id="screen-lineup" aria-labelledby="lineup-title" hidden>
-        <div class="screen-heading">
-          <p class="eyebrow">Krok 2 z 4</p>
-          <h1 id="lineup-title">Nominácia</h1>
-          <p class="muted">Vyber hráčov, ktorí nastúpia.</p>
+        <div class="lineup-heading">
+          <div class="screen-heading">
+            <p class="eyebrow">Krok 2 z 4</p>
+            <h1 id="lineup-title">Nominácia</h1>
+            <p class="muted">Vyber hráčov, ktorí nastúpia.</p>
+          </div>
+
+          <strong class="lineup-selected-count">
+            <span id="selected-count">0</span> vybraných
+          </strong>
         </div>
 
         <div class="card">
-          <div class="selection-summary">
-            <span>Nominácia hráčov</span>
-            <strong><span id="selected-count">0</span> vybraných</strong>
-          </div>
-
-          <label class="sr-only" for="player-search">Hľadať hráča</label>
-          <input id="player-search" type="search" placeholder="Hľadať hráča…" autocomplete="off">
-
           <div id="player-list" class="player-grid" aria-label="Zoznam hráčov"></div>
-
-          <div class="button-row">
-            <button class="button secondary" id="back-to-setup" type="button">Späť</button>
-            <button class="button primary" id="start-match" type="button">Začať zápas</button>
-          </div>
         </div>
       </section>
 
