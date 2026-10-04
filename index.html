@@ -103,20 +103,32 @@
           <div id="scorer-list" class="scorer-list"></div>
         </div>
 
-        <div class="card">
-          <div class="section-title-row">
-            <h2>Góly súpera</h2>
-            <span class="muted small-text">Zaznamenaj strelca gólu</span>
-          </div>
-
-          <div class="opponent-goal-row">
-            <label class="sr-only" for="opponent-scorer">Meno strelca súpera</label>
-            <input id="opponent-scorer" type="text" placeholder="Meno strelca" maxlength="40">
-            <button class="button primary" id="add-opponent-goal" type="button">+ Gól</button>
-          </div>
-
-          <div id="opponent-scorer-list" class="scorer-list"></div>
+        <div class="opponent-dock">
+          <label for="opponent-scorer" id="opponent-scorer-label"></label>
+        
+          <input
+            id="opponent-scorer"
+            type="text"
+            placeholder="Zadaj strelca súpera"
+            maxlength="40"
+            aria-label="Meno strelca gólu súpera"
+          >
+        
+          <button
+            class="dock-goal-button"
+            id="opponent-goal-add"
+            type="button"
+            aria-label="Pridať gól súperovi"
+          >＋</button>
+        
+          <button
+            class="dock-goal-button"
+            id="opponent-goal-remove"
+            type="button"
+            aria-label="Odobrať gól súperovi"
+          >−</button>
         </div>
+
       </section>
 
       <section class="screen" id="screen-output" aria-labelledby="output-title" hidden>
