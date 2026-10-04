@@ -637,3 +637,71 @@ h2 {
     grid-column: auto;
   }
 }
+
+#screen-match {
+  position: relative;
+  min-height: calc(100vh - 76px);
+  padding-bottom: 90px;
+}
+
+.opponent-dock {
+  position: sticky;
+  bottom: 0;
+  z-index: 5;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 40px 40px;
+  align-items: center;
+  gap: 8px;
+  min-height: 58px;
+  margin: 18px -22px -40px;
+  padding: 6px 14px;
+  background: #eef3f5;
+  border-top: 3px solid var(--red);
+}
+
+.opponent-dock label {
+  grid-column: 1;
+  grid-row: 1;
+  margin: 0;
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.opponent-dock input {
+  grid-column: 1;
+  grid-row: 1;
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.opponent-dock input::placeholder {
+  color: #222;
+  opacity: 1;
+}
+
+.dock-goal-button {
+  width: 40px;
+  height: 44px;
+  padding: 0;
+  color: #aaa;
+  background: transparent;
+  border: 0;
+  font-size: 30px;
+  font-weight: 300;
+}
+
+.dock-goal-button:active {
+  color: var(--red);
+}
+
+@media (min-width: 600px) {
+  .opponent-dock {
+    margin-left: -42px;
+    margin-right: -42px;
+    margin-bottom: -48px;
+  }
+}
+
