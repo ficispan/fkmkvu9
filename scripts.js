@@ -14,14 +14,14 @@ const DEFAULT_PLAYERS = [
   "Gudkov",
   "Hikl",
   "Horváth",
-  "Kosinský",
+  "Kosinskyi",
   "Kytka",
   "Mašár",
   "Montoya",
   "Morong",
   "Paulik",
   "Polakovič",
-  "Roszoly",
+  "Rosolov",
   "Rybár",
   "Škoda",
   "Tišťan",
@@ -245,66 +245,108 @@ function renderMatch() {
   const list = $("#scorer-list");
   list.replaceChildren();
 
-  state.selectedPlayers.forEach((player) => {
-    const row = document.createElement("div");
-    row.className = "scorer-row";
+  // Najprv hráči nominácie, zoradení abecedne.
+  const sortedPlayers = [...state.selectedPlayers].sort((a, b) =>
+    a.localeCompare(b, "sk")
+  );
 
-    const name = document.createElement("span");
-    name.className = "scorer-name";
-    name.textContent = player;
-
-    const count = document.createElement("span");
-    count.className = "scorer-count";
-    count.textContent = String(state.homeGoals[player] || 0);
-
-    const add = document.createElement("button");
-    add.type = "button";
-    add.className = "goal-button";
-    add.textContent = "+";
-    add.setAttribute("aria-label", `Pridať gól: ${player}`);
-    add.addEventListener("click", () => {
-      state.homeGoals[player] = (state.homeGoals[player] || 0) + 1;
-      saveState();
-      renderMatch();
+  sortedPlayers.forEach((player) => {
+    addScorerRow(list, player, Number(state.homeGoals[player]) || 0, {
+      onAdd: () => {
+        state.homeGoals[player] = (Number(state.homeGoals[player]) || 0) + 1;
+        saveState();
+        renderMatch();
+      },
+      onRemove: () => {
+        state.homeGoals[player] = Math.max(
+          0,
+          (Number(state.homeGoals[player]) || 0) - 1
+        );
+        saveState();
+        renderMatch();
+      }
     });
-
-    const remove = document.createElement("button");
-    remove.type = "button";
-    remove.className = "goal-button minus";
-    remove.textContent = "−";
-    remove.setAttribute("aria-label", `Odobrať gól: ${player}`);
-    remove.disabled = !state.homeGoals[player];
-    remove.addEventListener("click", () => {
-      state.homeGoals[player] = Math.max(0, (state.homeGoals[player] || 0) - 1);
-      saveState();
-      renderMatch();
-    });
-
-    row.append(name, count, add, remove);
-    list.append(row);
   });
 
-  if (state.selectedPlayers.length === 0) {
-    const empty = document.createElement("p");
-    empty.className = "muted";
-    empty.textContent = "Nominácia je prázdna. Vráť sa a vyber hráčov.";
-    list.append(empty);
-  }
+  // Súperov vlastný gól je vždy posledný v zozname.
+  const ownGoalName = `${state.opponent || "Súper"} vl.`;
+  const ownGoalCount = state.awayGoals.filter(
+    (goal) => goal.scorer === ownGoalName
+  ).length;
+
+  addScorerRow(list, ownGoalName, ownGoalCount, {
+    onAdd: () => {
+      state.awayGoals.push({
+        scorer: ownGoalName,
+        minute: formatTime(calculateElapsed())
+      });
+      saveState();
+      renderMatch();
+    },
+    onRemove: () => {
+      const index = state.awayGoals.findLastIndex(
+        (goal) => goal.scorer === ownGoalName
+      );
+
+      if (index !== -1) {
+        state.awayGoals.splice(index, 1);
+        saveState();
+        renderMatch();
+      }
+    }
+  });
+
+  // Ostatné góly súpera idú pod vlastný gól.
+  state.awayGoals.forEach((goal, index) => {
+    if (goal.scorer === ownGoalName) return;
+
+    addScorerRow(list, `${goal.scorer} · súper`, 1, {
+      onAdd: () => {
+        state.awayGoals.push({
+          scorer: goal.scorer,
+          minute: formatTime(calculateElapsed())
+        });
+        saveState();
+        renderMatch();
+      },
+      onRemove: () => {
+        state.awayGoals.splice(index, 1);
+        saveState();
+        renderMatch();
+      }
+    });
+  });
 }
 
-function addOpponentGoal() {
-  const input = $("#opponent-scorer");
-  const scorer = input.value.trim();
+function addScorerRow(list, name, count, actions) {
+  const row = document.createElement("div");
+  row.className = "scorer-row";
 
-  state.awayGoals.push({
-    scorer: scorer || "Neznámy strelec",
-    minute: formatTime(calculateElapsed())
-  });
+  const scorerName = document.createElement("span");
+  scorerName.className = "scorer-name";
+  scorerName.textContent = name;
 
-  input.value = "";
-  saveState();
-  renderMatch();
-  showToast("Gól súpera bol zaznamenaný.");
+  const scorerCount = document.createElement("span");
+  scorerCount.className = "scorer-count";
+  scorerCount.textContent = String(count);
+
+  const addButton = document.createElement("button");
+  addButton.type = "button";
+  addButton.className = "goal-button";
+  addButton.textContent = "+";
+  addButton.setAttribute("aria-label", `Pridať gól: ${name}`);
+  addButton.addEventListener("click", actions.onAdd);
+
+  const removeButton = document.createElement("button");
+  removeButton.type = "button";
+  removeButton.className = "goal-button minus";
+  removeButton.textContent = "−";
+  removeButton.disabled = count === 0;
+  removeButton.setAttribute("aria-label", `Odobrať gól: ${name}`);
+  removeButton.addEventListener("click", actions.onRemove);
+
+  row.append(scorerName, scorerCount, addButton, removeButton);
+  list.append(row);
 }
 
 function getGoalsSummary() {
@@ -637,8 +679,6 @@ function bindEvents() {
     saveState();
     renderMatch();
   });
-
-  $("#add-opponent-goal").addEventListener("click", addOpponentGoal);
 
   $("#opponent-scorer").addEventListener("keydown", (event) => {
     if (event.key === "Enter") {
