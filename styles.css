@@ -56,38 +56,6 @@ button {
   border-radius: 50%;
 }
 
-.brand-logo::before {
-  content: "";
-  position: absolute;
-  inset: 5px;
-  border: 1px solid rgba(255, 255, 255, 0.8);
-  border-radius: 50%;
-}
-
-.logo-top,
-.logo-bottom,
-.logo-grape {
-  position: relative;
-  z-index: 1;
-}
-
-.logo-top {
-  font-size: 11px;
-  letter-spacing: 2px;
-  font-weight: 800;
-}
-
-.logo-grape {
-  font-size: 13px;
-  margin: 3px 0;
-}
-
-.logo-bottom {
-  font-size: 5px;
-  letter-spacing: 1px;
-  font-weight: 700;
-}
-
 main {
   padding: 28px 22px 40px;
 }
@@ -224,7 +192,6 @@ select:focus {
   display: grid !important;
   gap: 10px;
 }
-
 
 .selection-summary,
 .section-title-row {
@@ -392,7 +359,7 @@ h2 {
 
 .scorer-row {
   display: grid;
-  grid-template-columns: 1fr auto 40px 40px;
+  grid-template-columns: minmax(0, 1fr) auto 40px 40px;
   align-items: center;
   gap: 8px;
   min-height: 52px;
@@ -401,6 +368,7 @@ h2 {
 
 .scorer-name {
   font-size: 14px;
+  overflow-wrap: anywhere;
 }
 
 .scorer-count {
@@ -425,15 +393,53 @@ h2 {
   font-size: 22px;
 }
 
-.opponent-goal-row {
+.opponent-dock {
+  position: fixed;
+  z-index: 20;
+  left: 50%;
+  bottom: 0;
+  width: min(100%, 680px);
+  min-height: 58px;
+  padding: 6px 18px;
+  padding-bottom: calc(6px + env(safe-area-inset-bottom));
   display: grid;
-  grid-template-columns: 1fr auto;
+  grid-template-columns: minmax(0, 1fr) 30px 40px 40px;
+  align-items: center;
   gap: 8px;
-  margin-top: 13px;
+  transform: translateX(-50%);
+  background: #eef3f5;
+  border-top: 3px solid var(--red);
 }
 
-.opponent-goal-row .button {
-  min-width: 88px;
+.opponent-dock-name {
+  font-size: 15px;
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+
+.opponent-dock-count {
+  text-align: center;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.dock-goal-button {
+  width: 40px;
+  height: 42px;
+  padding: 0;
+  color: #999;
+  background: transparent;
+  border: 0;
+  font-size: 30px;
+  font-weight: 300;
+}
+
+.dock-goal-button:active {
+  color: var(--red);
+}
+
+#screen-match {
+  padding-bottom: 82px;
 }
 
 .output-heading {
@@ -585,9 +591,9 @@ h2 {
 
 .toast {
   position: fixed;
-  z-index: 10;
+  z-index: 30;
   right: 16px;
-  bottom: calc(16px + env(safe-area-inset-bottom));
+  bottom: calc(76px + env(safe-area-inset-bottom));
   left: 16px;
   width: fit-content;
   max-width: min(420px, calc(100% - 32px));
@@ -637,71 +643,3 @@ h2 {
     grid-column: auto;
   }
 }
-
-#screen-match {
-  position: relative;
-  min-height: calc(100vh - 76px);
-  padding-bottom: 90px;
-}
-
-.opponent-dock {
-  position: sticky;
-  bottom: 0;
-  z-index: 5;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 40px 40px;
-  align-items: center;
-  gap: 8px;
-  min-height: 58px;
-  margin: 18px -22px -40px;
-  padding: 6px 14px;
-  background: #eef3f5;
-  border-top: 3px solid var(--red);
-}
-
-.opponent-dock label {
-  grid-column: 1;
-  grid-row: 1;
-  margin: 0;
-  font-size: 15px;
-  font-weight: 500;
-}
-
-.opponent-dock input {
-  grid-column: 1;
-  grid-row: 1;
-  min-height: 44px;
-  padding: 0;
-  border: 0;
-  background: transparent;
-  box-shadow: none;
-}
-
-.opponent-dock input::placeholder {
-  color: #222;
-  opacity: 1;
-}
-
-.dock-goal-button {
-  width: 40px;
-  height: 44px;
-  padding: 0;
-  color: #aaa;
-  background: transparent;
-  border: 0;
-  font-size: 30px;
-  font-weight: 300;
-}
-
-.dock-goal-button:active {
-  color: var(--red);
-}
-
-@media (min-width: 600px) {
-  .opponent-dock {
-    margin-left: -42px;
-    margin-right: -42px;
-    margin-bottom: -48px;
-  }
-}
-
