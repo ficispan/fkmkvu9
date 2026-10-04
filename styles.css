@@ -694,3 +694,118 @@ h2 {
     grid-column: auto;
   }
 }
+
+/* Screen 2: kompaktnejší odstup od červenej hlavičky */
+#screen-lineup {
+  margin-top: -14px;
+}
+
+/* Screen 2: názov nominácie menší a počet zarovnaný s vysvetľujúcim textom */
+#screen-lineup .screen-heading h1 {
+  font-size: 70%;
+}
+
+#screen-lineup .screen-heading .muted {
+  display: inline-block;
+}
+
+#screen-lineup .screen-heading {
+  position: relative;
+  padding-right: 105px;
+}
+
+#screen-lineup .screen-heading::after {
+  content: attr(data-selected-count);
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  color: #747474;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+/* Skry iba vyhľadávanie nominácie, nie zoznam hráčov */
+#screen-lineup #player-search,
+#screen-lineup label[for="player-search"] {
+  display: none !important;
+}
+
+/* Odstráň text „Nominácia hráčov“ a ponechaj grid tlačidiel */
+#screen-lineup .selection-summary > span:first-child {
+  display: none;
+}
+
+#screen-lineup .selection-summary {
+  margin: 0;
+  padding: 0;
+}
+
+#screen-lineup .selection-summary strong {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+}
+
+/* Tri kompaktné mená vedľa seba */
+#screen-lineup .player-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+#screen-lineup .player-button {
+  min-width: 0;
+  padding-right: 4px;
+  padding-left: 4px;
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
+/* Hlavička: biela šípka, vycentrované logo, biela šípka */
+.brandbar {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  justify-items: center;
+}
+
+.brandbar .brand-logo {
+  grid-column: 2;
+  justify-self: center;
+}
+
+.brandbar::before,
+.brandbar::after {
+  position: absolute;
+  top: 50%;
+  color: #fff;
+  font-size: 46px;
+  font-weight: 300;
+  line-height: 1;
+  transform: translateY(-55%);
+  pointer-events: none;
+}
+
+.brandbar::before {
+  content: "‹";
+  left: 16px;
+}
+
+.brandbar::after {
+  content: "›";
+  right: 16px;
+}
+
+/* Skry pôvodné navigačné tlačidlá, ak sú v hlavičke */
+.brandbar .header-nav-button,
+.brandbar #back-to-setup,
+.brandbar #start-match {
+  display: none !important;
+}
+
+/* Navigácia nominácie má byť v hlavičke; skry jej staré tlačidlá naspodku */
+#screen-lineup .button-row {
+  display: none !important;
+}
+
