@@ -143,8 +143,6 @@ function renderPlayers() {
   const list = $("#player-list");
   const players = sortedPlayers().filter((name) => normalizeText(name).includes(search));
 
-  $("#lineup-match-label").textContent =
-    `${state.opponent || "Súper"} · ${state.squads} ${state.squads === 1 ? "squad" : "squady"}`;
   $("#selected-count").textContent = String(state.selectedPlayers.length);
   list.replaceChildren();
 
@@ -231,7 +229,10 @@ function totalGoals(goals) {
 }
 
 function renderMatch() {
-  $("#away-team-name").textContent = state.opponent || "Súper";
+  const opponent = state.opponent || "Súper";
+  const ownGoalName = `${opponent} vl.`;
+
+  $("#away-team-name").textContent = opponent;
   $("#home-score").textContent = String(totalGoals(state.homeGoals));
   $("#away-score").textContent = String(state.awayGoals.length);
   $("#timer-toggle").textContent = state.timerRunning
@@ -245,7 +246,7 @@ function renderMatch() {
   const list = $("#scorer-list");
   list.replaceChildren();
 
-  // Najprv hráči nominácie, zoradení abecedne.
+  // Hráči nášho tímu, abecedne.
   const sortedPlayers = [...state.selectedPlayers].sort((a, b) =>
     a.localeCompare(b, "sk")
   );
@@ -268,13 +269,44 @@ function renderMatch() {
     });
   });
 
-  // Súperov vlastný gól je vždy posledný v zozname.
-  const ownGoalName = `${state.opponent || "Súper"} vl.`;
-  const ownGoalCount = state.awayGoals.filter(
+  // Góly hráčov súpera. Meno streľca sa zachová pri každom góle.
+  state.awayGoals.forEach((goal, index) => {
+    if (goal.scorer === ownGoalName) return;
+
+    const scorer = goal.scorer || "Neznámy strelec";
+
+    addScorerRow(list, `${scorer} · súper`, 1, {
+      onAdd: () => {
+        state.awayGoals.push({
+          scorer,
+          minute: formatTime(calculateElapsed())
+        });
+        saveState();
+        renderMatch();
+      },
+      onRemove: () => {
+        const goalIndex = state.awayGoals.findIndex(
+          (item, itemIndex) =>
+            itemIndex >= index &&
+            item.scorer === scorer &&
+            item.scorer !== ownGoalName
+        );
+
+        if (goalIndex !== -1) {
+          state.awayGoals.splice(goalIndex, 1);
+          saveState();
+          renderMatch();
+        }
+      }
+    });
+  });
+
+  // Vlastný gól súpera je vždy posledný.
+  const ownGoalsCount = state.awayGoals.filter(
     (goal) => goal.scorer === ownGoalName
   ).length;
 
-  addScorerRow(list, ownGoalName, ownGoalCount, {
+  addScorerRow(list, ownGoalName, ownGoalsCount, {
     onAdd: () => {
       state.awayGoals.push({
         scorer: ownGoalName,
@@ -294,27 +326,6 @@ function renderMatch() {
         renderMatch();
       }
     }
-  });
-
-  // Ostatné góly súpera idú pod vlastný gól.
-  state.awayGoals.forEach((goal, index) => {
-    if (goal.scorer === ownGoalName) return;
-
-    addScorerRow(list, `${goal.scorer} · súper`, 1, {
-      onAdd: () => {
-        state.awayGoals.push({
-          scorer: goal.scorer,
-          minute: formatTime(calculateElapsed())
-        });
-        saveState();
-        renderMatch();
-      },
-      onRemove: () => {
-        state.awayGoals.splice(index, 1);
-        saveState();
-        renderMatch();
-      }
-    });
   });
 }
 
