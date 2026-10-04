@@ -49,17 +49,11 @@ button {
 }
 
 .brand-logo {
+  display: block;
   width: 58px;
   height: 58px;
-  border: 1.5px solid rgba(255, 255, 255, 0.95);
+  object-fit: contain;
   border-radius: 50%;
-  color: #fff;
-  display: grid;
-  place-content: center;
-  text-align: center;
-  line-height: 1;
-  position: relative;
-  overflow: hidden;
 }
 
 .brand-logo::before {
