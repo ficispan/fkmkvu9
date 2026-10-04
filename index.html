@@ -104,31 +104,11 @@
         </div>
 
         <div class="opponent-dock">
-          <label for="opponent-scorer" id="opponent-scorer-label"></label>
-        
-          <input
-            id="opponent-scorer"
-            type="text"
-            placeholder="Zadaj strelca súpera"
-            maxlength="40"
-            aria-label="Meno strelca gólu súpera"
-          >
-        
-          <button
-            class="dock-goal-button"
-            id="opponent-goal-add"
-            type="button"
-            aria-label="Pridať gól súperovi"
-          >＋</button>
-        
-          <button
-            class="dock-goal-button"
-            id="opponent-goal-remove"
-            type="button"
-            aria-label="Odobrať gól súperovi"
-          >−</button>
+          <span class="opponent-dock-name" id="opponent-dock-name">Súper</span>
+          <span class="opponent-dock-count" id="opponent-goal-count">0</span>
+          <button class="dock-goal-button" id="opponent-goal-add" type="button" aria-label="Pridať súperovi gól">+</button>
+          <button class="dock-goal-button" id="opponent-goal-remove" type="button" aria-label="Odobrať súperovi gól">−</button>
         </div>
-
       </section>
 
       <section class="screen" id="screen-output" aria-labelledby="output-title" hidden>
