@@ -624,8 +624,13 @@ function bindEvents() {
   });
 
   $("#player-search").addEventListener("input", renderPlayers);
-  $("#back-to-setup").addEventListener("click", () => showScreen("setup"));
 
+  // Šípka späť v hlavičke: nominácia → nastavenie zápasu.
+  $("#back-to-setup").addEventListener("click", () => {
+    showScreen("setup");
+  });
+
+  // Šípka vpravo v hlavičke: nominácia → obrazovka zápasu.
   $("#start-match").addEventListener("click", () => {
     if (state.selectedPlayers.length === 0) {
       showToast("Vyber aspoň jedného hráča do nominácie.");
@@ -654,8 +659,11 @@ function bindEvents() {
   });
 
   $("#timer-toggle").addEventListener("click", () => {
-    if (state.timerRunning) pauseTimer();
-    else startTimer();
+    if (state.timerRunning) {
+      pauseTimer();
+    } else {
+      startTimer();
+    }
   });
 
   $("#timer-reset").addEventListener("click", resetTimer);
@@ -700,6 +708,7 @@ function bindEvents() {
     }
   });
 }
+
 
 loadSavedState();
 bindEvents();
