@@ -1,1024 +1,661 @@
-/* ==================================================
-   DATA
-================================================== */
+"use strict";
 
-const players = [
-    "Bartoš",
-    "Čičatka",
-    "Čuvara",
-    "Dvorský",
-    "Gálik",
-    "Gejdoš",
-    "Gudkov",
-    "Hikí",
-    "Horváth",
-    "Kosinský",
-    "Kytka",
-    "Mašar",
-    "Montoya",
-    "Morong",
-    "Paulík",
-    "Polakovič",
-    "Rosolý",
-    "Ryblár",
-    "Škoda",
-    "Tišťan",
-    "Tóma",
-    "Tóth",
-    "Varovčík",
-    "Vrabec",
-    "Zeleňák",
-    "Zukal"
+/*
+ * Počiatočný zoznam mien podľa priloženej ukážky.
+ * Pred použitím ho porovnaj s úplnou súpiskou a uprav.
+ */
+const DEFAULT_PLAYERS = [
+  "Bartoš",
+  "Čičatka",
+  "Čuvara",
+  "Dvorský",
+  "Gálik",
+  "Gejdoš",
+  "Gudkov",
+  "Hikl",
+  "Horváth",
+  "Kosinský",
+  "Kytka",
+  "Mašár",
+  "Montoya",
+  "Morong",
+  "Paulik",
+  "Polakovič",
+  "Roszoly",
+  "Rybár",
+  "Škoda",
+  "Tišťan",
+  "Torma",
+  "Tóth",
+  "Vavrovič",
+  "Vrabec",
+  "Zeleňák",
+  "Zukal"
 ];
 
+const STORAGE_KEY = "fkm-karlova-ves-match-v1";
 
-/* ==================================================
-   APPLICATION STATE
-================================================== */
-
-const game = {
-
-    opponent: "ŠK Slovan",
-
-    squads: 1,
-
-    coach: "",
-
-    selectedPlayers: [],
-
-    goals: {},
-
-    opponentOwnGoals: 0,
-
-    awayScore: 0,
-
-    timerSeconds: 0,
-
-    timerRunning: false,
-
-    timerInterval: null
-
+const state = {
+  opponent: "",
+  squads: 1,
+  coach: "",
+  selectedPlayers: [],
+  homeGoals: {},
+  awayGoals: [],
+  elapsedSeconds: 0,
+  timerRunning: false,
+  lastTimerStart: null,
+  currentScreen: "setup"
 };
 
+let timerInterval = null;
+let toastTimeout = null;
 
-/* ==================================================
-   ELEMENTS
-================================================== */
+const $ = (selector) => document.querySelector(selector);
 
-const opponentInput =
-    document.getElementById("opponent");
+function loadSavedState() {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (!saved) return;
 
-const squadsSelect =
-    document.getElementById("squads");
+    const data = JSON.parse(saved);
+    if (!data || typeof data !== "object") return;
 
-const coachGroup =
-    document.getElementById("coachGroup");
-
-const coachSelect =
-    document.getElementById("coach");
-
-const startButton =
-    document.getElementById("startButton");
-
-const playersGrid =
-    document.getElementById("playersGrid");
-
-const selectedCount =
-    document.getElementById("selectedCount");
-
-const selectionCoach =
-    document.getElementById("selectionCoach");
-
-const scoreRows =
-    document.getElementById("scoreRows");
-
-const homeScore =
-    document.getElementById("homeScore");
-
-const awayScore =
-    document.getElementById("awayScore");
-
-const gameOpponent =
-    document.getElementById("gameOpponent");
-
-const timerDisplay =
-    document.getElementById("timerDisplay");
-
-const outputOpponent =
-    document.getElementById("outputOpponent");
-
-const outputScore =
-    document.getElementById("outputScore");
-
-const outputCoach =
-    document.getElementById("outputCoach");
-
-const outputDate =
-    document.getElementById("outputDate");
-
-const goalsText =
-    document.getElementById("goalsText");
-
-const field =
-    document.getElementById("field");
-
-
-/* ==================================================
-   SCREEN NAVIGATION
-================================================== */
-
-function showScreen(number) {
-
-    document
-        .querySelectorAll(".screen")
-        .forEach(screen => {
-            screen.classList.remove("active");
-        });
-
-    const target =
-        document.getElementById(`screen${number}`);
-
-    if (target) {
-        target.classList.add("active");
-    }
+    state.opponent = typeof data.opponent === "string" ? data.opponent : "";
+    state.squads = Number(data.squads) === 2 ? 2 : 1;
+    state.coach = typeof data.coach === "string" ? data.coach : "";
+    state.selectedPlayers = Array.isArray(data.selectedPlayers)
+      ? data.selectedPlayers.filter((name) => DEFAULT_PLAYERS.includes(name))
+      : [];
+    state.homeGoals =
+      data.homeGoals && typeof data.homeGoals === "object" ? data.homeGoals : {};
+    state.awayGoals = Array.isArray(data.awayGoals) ? data.awayGoals : [];
+    state.elapsedSeconds = Math.max(0, Number(data.elapsedSeconds) || 0);
+    state.timerRunning = false;
+    state.currentScreen = ["setup", "lineup", "match", "output"].includes(data.currentScreen)
+      ? data.currentScreen
+      : "setup";
+  } catch (error) {
+    console.warn("Uložený zápas sa nepodarilo načítať.", error);
+  }
 }
 
-
-/* ==================================================
-   SCREEN 1
-   SQUADS / COACH
-================================================== */
-
-function updateCoachVisibility() {
-
-    const squads =
-        Number(squadsSelect.value);
-
-    game.squads = squads;
-
-    if (squads === 2) {
-
-        coachGroup.classList.remove("hidden");
-
-    } else {
-
-        coachGroup.classList.add("hidden");
-
-        game.coach = "";
-    }
+function saveState() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      ...state,
+      timerRunning: false,
+      lastTimerStart: null
+    }));
+  } catch (error) {
+    console.warn("Zápas sa nepodarilo uložiť do zariadenia.", error);
+  }
 }
 
+function showToast(message) {
+  const toast = $("#toast");
+  toast.textContent = message;
+  toast.classList.add("visible");
 
-squadsSelect.addEventListener(
-    "change",
-    updateCoachVisibility
-);
-
-
-startButton.addEventListener(
-    "click",
-    startMatch
-);
-
-
-function startMatch() {
-
-    game.opponent =
-        opponentInput.value.trim() || "Opponent";
-
-    game.squads =
-        Number(squadsSelect.value);
-
-
-    if (game.squads === 2) {
-
-        game.coach =
-            coachSelect.value;
-
-    } else {
-
-        game.coach = "";
-    }
-
-
-    game.selectedPlayers = [];
-
-    game.goals = {};
-
-    game.opponentOwnGoals = 0;
-
-    game.awayScore = 0;
-
-
-    game.playersRendered = false;
-
-
-    renderPlayers();
-
-    updateSelectionHeader();
-
-    showScreen(2);
+  window.clearTimeout(toastTimeout);
+  toastTimeout = window.setTimeout(() => {
+    toast.classList.remove("visible");
+  }, 2600);
 }
 
+function showScreen(screenName) {
+  const screens = {
+    setup: $("#screen-setup"),
+    lineup: $("#screen-lineup"),
+    match: $("#screen-match"),
+    output: $("#screen-output")
+  };
 
-/* ==================================================
-   SCREEN 2
-   PLAYER SELECTION
-================================================== */
+  Object.entries(screens).forEach(([name, element]) => {
+    const active = name === screenName;
+    element.classList.toggle("active", active);
+    element.hidden = !active;
+  });
+
+  state.currentScreen = screenName;
+  saveState();
+
+  if (screenName === "lineup") renderPlayers();
+  if (screenName === "match") renderMatch();
+  if (screenName === "output") renderOutput();
+
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function normalizeText(value) {
+  return String(value || "")
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "")
+    .toLocaleLowerCase("sk");
+}
+
+function sortedPlayers() {
+  return [...DEFAULT_PLAYERS].sort((a, b) => a.localeCompare(b, "sk"));
+}
 
 function renderPlayers() {
+  const search = normalizeText($("#player-search").value);
+  const list = $("#player-list");
+  const players = sortedPlayers().filter((name) => normalizeText(name).includes(search));
 
-    playersGrid.innerHTML = "";
+  $("#lineup-match-label").textContent =
+    `${state.opponent || "Súper"} · ${state.squads} ${state.squads === 1 ? "squad" : "squady"}`;
+  $("#selected-count").textContent = String(state.selectedPlayers.length);
+  list.replaceChildren();
 
+  if (players.length === 0) {
+    const empty = document.createElement("p");
+    empty.className = "muted";
+    empty.textContent = "Nenašli sa žiadni hráči.";
+    list.append(empty);
+    return;
+  }
 
-    players.forEach(player => {
+  players.forEach((name) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "player-button";
+    button.textContent = name;
+    button.setAttribute("aria-pressed", String(state.selectedPlayers.includes(name)));
 
-        const button =
-            document.createElement("button");
+    if (state.selectedPlayers.includes(name)) button.classList.add("selected");
 
-        button.type = "button";
+    button.addEventListener("click", () => {
+      const selected = state.selectedPlayers.includes(name);
+      state.selectedPlayers = selected
+        ? state.selectedPlayers.filter((player) => player !== name)
+        : [...state.selectedPlayers, name];
 
-        button.className =
-            "player-button";
-
-
-        if (
-            game.selectedPlayers.includes(player)
-        ) {
-
-            button.classList.add("selected");
-        }
-
-
-        button.textContent =
-            player;
-
-
-        button.addEventListener(
-            "click",
-            () => togglePlayer(player, button)
-        );
-
-
-        playersGrid.appendChild(button);
+      saveState();
+      renderPlayers();
     });
+
+    list.append(button);
+  });
 }
 
-
-function togglePlayer(player, button) {
-
-    const index =
-        game.selectedPlayers.indexOf(player);
-
-
-    if (index === -1) {
-
-        game.selectedPlayers.push(player);
-
-        game.goals[player] =
-            game.goals[player] || 0;
-
-        button.classList.add("selected");
-
-    } else {
-
-        game.selectedPlayers.splice(index, 1);
-
-        delete game.goals[player];
-
-        button.classList.remove("selected");
-    }
-
-
-    updateSelectionHeader();
+function calculateElapsed() {
+  if (!state.timerRunning || !state.lastTimerStart) return state.elapsedSeconds;
+  return state.elapsedSeconds + Math.floor((Date.now() - state.lastTimerStart) / 1000);
 }
 
-
-function updateSelectionHeader() {
-
-    selectedCount.textContent =
-        game.selectedPlayers.length;
-
-
-    if (game.squads === 2) {
-
-        selectionCoach.textContent =
-            `Coach: ${game.coach}`;
-
-    } else {
-
-        selectionCoach.textContent = "";
-    }
+function formatTime(seconds) {
+  const safeSeconds = Math.max(0, Math.floor(seconds));
+  const minutes = Math.floor(safeSeconds / 60);
+  const remainder = safeSeconds % 60;
+  return `${String(minutes).padStart(2, "0")}:${String(remainder).padStart(2, "0")}`;
 }
-
-
-/* ==================================================
-   SCREEN 2 NAVIGATION
-================================================== */
-
-document
-    .getElementById("playersBack")
-    .addEventListener(
-        "click",
-        () => showScreen(1)
-    );
-
-
-document
-    .getElementById("playersNext")
-    .addEventListener(
-        "click",
-        () => {
-
-            if (
-                game.selectedPlayers.length === 0
-            ) {
-
-                alert(
-                    "Vyber aspoň jedného hráča."
-                );
-
-                return;
-            }
-
-
-            renderScoreRows();
-
-            updateScore();
-
-            showScreen(3);
-        }
-    );
-
-
-/* ==================================================
-   SCREEN 3
-   SCORE
-================================================== */
-
-function renderScoreRows() {
-
-    scoreRows.innerHTML = "";
-
-
-    game.selectedPlayers.forEach(
-        player => {
-
-            const row =
-                document.createElement("div");
-
-            row.className =
-                "score-row";
-
-
-            row.innerHTML = `
-
-                <div class="score-player">
-                    ${player}
-                </div>
-
-                <div
-                    class="score-number"
-                    id="goal-${escapeId(player)}"
-                >
-                    ${game.goals[player] || 0}
-                </div>
-
-                <button
-                    class="goal-button"
-                    data-player="${player}"
-                    data-action="plus"
-                >
-                    +
-                </button>
-
-                <button
-                    class="goal-button"
-                    data-player="${player}"
-                    data-action="minus"
-                >
-                    −
-                </button>
-            `;
-
-
-            scoreRows.appendChild(row);
-        }
-    );
-
-
-    /* Opponent own goal */
-
-    const ownGoalRow =
-        document.createElement("div");
-
-    ownGoalRow.className =
-        "score-row";
-
-
-    ownGoalRow.innerHTML = `
-
-        <div class="score-player">
-            ${game.opponent} vl.
-        </div>
-
-        <div
-            class="score-number"
-            id="own-goal-count"
-        >
-            ${game.opponentOwnGoals}
-        </div>
-
-        <button
-            class="goal-button"
-            data-own-goal="plus"
-        >
-            +
-        </button>
-
-        <button
-            class="goal-button"
-            data-own-goal="minus"
-        >
-            −
-        </button>
-    `;
-
-
-    scoreRows.appendChild(ownGoalRow);
-
-
-    scoreRows
-        .querySelectorAll(
-            "[data-player]"
-        )
-        .forEach(button => {
-
-            button.addEventListener(
-                "click",
-                () => {
-
-                    const player =
-                        button.dataset.player;
-
-                    const action =
-                        button.dataset.action;
-
-
-                    changePlayerGoals(
-                        player,
-                        action
-                    );
-                }
-            );
-        });
-
-
-    scoreRows
-        .querySelectorAll(
-            "[data-own-goal]"
-        )
-        .forEach(button => {
-
-            button.addEventListener(
-                "click",
-                () => {
-
-                    changeOwnGoals(
-                        button.dataset.ownGoal
-                    );
-                }
-            );
-        });
-}
-
-
-function changePlayerGoals(
-    player,
-    action
-) {
-
-    if (!game.goals[player]) {
-        game.goals[player] = 0;
-    }
-
-
-    if (action === "plus") {
-
-        game.goals[player]++;
-
-    } else {
-
-        game.goals[player] =
-            Math.max(
-                0,
-                game.goals[player] - 1
-            );
-    }
-
-
-    renderScoreRows();
-
-    updateScore();
-}
-
-
-function changeOwnGoals(action) {
-
-    if (action === "plus") {
-
-        game.opponentOwnGoals++;
-
-    } else {
-
-        game.opponentOwnGoals =
-            Math.max(
-                0,
-                game.opponentOwnGoals - 1
-            );
-    }
-
-
-    renderScoreRows();
-
-    updateScore();
-}
-
-
-function updateScore() {
-
-    let homeGoals = 0;
-
-
-    game.selectedPlayers.forEach(
-        player => {
-
-            homeGoals +=
-                game.goals[player] || 0;
-        }
-    );
-
-
-    /*
-        Opponent own goals are goals
-        for FKM KV.
-    */
-
-    homeGoals +=
-        game.opponentOwnGoals;
-
-
-    homeScore.textContent =
-        homeGoals;
-
-
-    awayScore.textContent =
-        game.awayScore;
-
-
-    gameOpponent.textContent =
-        game.opponent;
-}
-
-
-/* ==================================================
-   SCORE RESET
-================================================== */
-
-document
-    .getElementById("resetButton")
-    .addEventListener(
-        "click",
-        resetScore
-    );
-
-
-function resetScore() {
-
-    game.selectedPlayers.forEach(
-        player => {
-            game.goals[player] = 0;
-        }
-    );
-
-
-    game.opponentOwnGoals = 0;
-
-    game.awayScore = 0;
-
-
-    renderScoreRows();
-
-    updateScore();
-}
-
-
-/* ==================================================
-   SCREEN 3 BACK
-================================================== */
-
-document
-    .getElementById("goalsBack")
-    .addEventListener(
-        "click",
-        () => showScreen(2)
-    );
-
-
-/* ==================================================
-   STOPWATCH
-================================================== */
-
-document
-    .getElementById("timerButton")
-    .addEventListener(
-        "click",
-        toggleTimer
-    );
-
-
-function toggleTimer() {
-
-    if (game.timerRunning) {
-
-        stopTimer();
-
-    } else {
-
-        startTimer();
-    }
-}
-
-
-function startTimer() {
-
-    if (game.timerRunning) {
-        return;
-    }
-
-
-    game.timerRunning = true;
-
-
-    game.timerInterval =
-        setInterval(
-            () => {
-
-                game.timerSeconds++;
-
-                updateTimerDisplay();
-
-            },
-            1000
-        );
-}
-
-
-function stopTimer() {
-
-    game.timerRunning = false;
-
-
-    clearInterval(
-        game.timerInterval
-    );
-
-
-    game.timerInterval = null;
-}
-
 
 function updateTimerDisplay() {
-
-    const minutes =
-        Math.floor(
-            game.timerSeconds / 60
-        );
-
-
-    const seconds =
-        game.timerSeconds % 60;
-
-
-    timerDisplay.textContent =
-        `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+  $("#timer-display").textContent = formatTime(calculateElapsed());
 }
 
+function startTimer() {
+  if (state.timerRunning) return;
 
-/* ==================================================
-   OUTPUT
-================================================== */
-
-document
-    .getElementById("outputButton")
-    .addEventListener(
-        "click",
-        showOutput
-    );
-
-
-function showOutput() {
-
-    updateScore();
-
-    renderOutputHeader();
-
-    renderGoalsSummary();
-
-    renderField();
-
-    showScreen(4);
+  state.timerRunning = true;
+  state.lastTimerStart = Date.now();
+  $("#timer-toggle").textContent = "Pozastaviť stopky";
+  timerInterval = window.setInterval(updateTimerDisplay, 250);
+  updateTimerDisplay();
 }
 
+function pauseTimer() {
+  if (!state.timerRunning) return;
 
-/* ==================================================
-   OUTPUT HEADER
-================================================== */
+  state.elapsedSeconds = calculateElapsed();
+  state.timerRunning = false;
+  state.lastTimerStart = null;
+  window.clearInterval(timerInterval);
+  timerInterval = null;
+  $("#timer-toggle").textContent = "Pokračovať";
+  updateTimerDisplay();
+  saveState();
+}
 
-function renderOutputHeader() {
+function resetTimer() {
+  pauseTimer();
+  state.elapsedSeconds = 0;
+  $("#timer-toggle").textContent = "Spustiť stopky";
+  updateTimerDisplay();
+  saveState();
+}
 
-    outputOpponent.textContent =
-        game.opponent;
+function totalGoals(goals) {
+  return Object.values(goals).reduce((sum, value) => sum + (Number(value) || 0), 0);
+}
 
+function renderMatch() {
+  $("#away-team-name").textContent = state.opponent || "Súper";
+  $("#home-score").textContent = String(totalGoals(state.homeGoals));
+  $("#away-score").textContent = String(state.awayGoals.length);
+  $("#timer-toggle").textContent = state.timerRunning
+    ? "Pozastaviť stopky"
+    : state.elapsedSeconds > 0
+      ? "Pokračovať"
+      : "Spustiť stopky";
 
-    outputScore.textContent =
-        `${homeScore.textContent} : ${awayScore.textContent}`;
+  updateTimerDisplay();
 
+  const list = $("#scorer-list");
+  list.replaceChildren();
 
-    outputDate.textContent =
-        getCurrentDate();
+  state.selectedPlayers.forEach((player) => {
+    const row = document.createElement("div");
+    row.className = "scorer-row";
 
+    const name = document.createElement("span");
+    name.className = "scorer-name";
+    name.textContent = player;
 
-    if (game.squads === 2) {
+    const count = document.createElement("span");
+    count.className = "scorer-count";
+    count.textContent = String(state.homeGoals[player] || 0);
 
-        outputCoach.textContent =
-            `team: ${game.coach}`;
+    const add = document.createElement("button");
+    add.type = "button";
+    add.className = "goal-button";
+    add.textContent = "+";
+    add.setAttribute("aria-label", `Pridať gól: ${player}`);
+    add.addEventListener("click", () => {
+      state.homeGoals[player] = (state.homeGoals[player] || 0) + 1;
+      saveState();
+      renderMatch();
+    });
 
+    const remove = document.createElement("button");
+    remove.type = "button";
+    remove.className = "goal-button minus";
+    remove.textContent = "−";
+    remove.setAttribute("aria-label", `Odobrať gól: ${player}`);
+    remove.disabled = !state.homeGoals[player];
+    remove.addEventListener("click", () => {
+      state.homeGoals[player] = Math.max(0, (state.homeGoals[player] || 0) - 1);
+      saveState();
+      renderMatch();
+    });
+
+    row.append(name, count, add, remove);
+    list.append(row);
+  });
+
+  if (state.selectedPlayers.length === 0) {
+    const empty = document.createElement("p");
+    empty.className = "muted";
+    empty.textContent = "Nominácia je prázdna. Vráť sa a vyber hráčov.";
+    list.append(empty);
+  }
+}
+
+function addOpponentGoal() {
+  const input = $("#opponent-scorer");
+  const scorer = input.value.trim();
+
+  state.awayGoals.push({
+    scorer: scorer || "Neznámy strelec",
+    minute: formatTime(calculateElapsed())
+  });
+
+  input.value = "";
+  saveState();
+  renderMatch();
+  showToast("Gól súpera bol zaznamenaný.");
+}
+
+function getGoalsSummary() {
+  const home = Object.entries(state.homeGoals)
+    .filter(([, count]) => Number(count) > 0)
+    .flatMap(([name, count]) => Array(Number(count)).fill(name));
+
+  const away = state.awayGoals.map((goal) => goal.scorer);
+  return { home, away };
+}
+
+function shirtSvg() {
+  return `
+    <svg class="shirt-icon" viewBox="0 0 64 58" aria-hidden="true">
+      <path fill="currentColor" d="M18 5 27 1c2 5 8 5 10 0l9 4 15 8-7 13-8-4v34H18V22l-8 4-7-13z"/>
+      <path fill="#fff" opacity=".9" d="M28 7h8l-4 7z"/>
+    </svg>
+  `;
+}
+
+function renderOutput() {
+  $("#poster-date").textContent = new Intl.DateTimeFormat("sk-SK", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric"
+  }).format(new Date());
+
+  $("#poster-coach").textContent =
+    state.squads === 2 && state.coach ? `Tréner: ${state.coach}` : "";
+
+  $("#poster-opponent").textContent = state.opponent || "Súper";
+  $("#poster-home-score").textContent = String(totalGoals(state.homeGoals));
+  $("#poster-away-score").textContent = String(state.awayGoals.length);
+
+  const { home, away } = getGoalsSummary();
+  const goalLines = [];
+
+  if (home.length) goalLines.push(`FKM Karlova Ves: ${home.join(", ")}`);
+  if (away.length) goalLines.push(`${state.opponent || "Súper"}: ${away.join(", ")}`);
+
+  $("#poster-goals-text").textContent =
+    goalLines.length ? goalLines.join(" · ") : "Zatiaľ bez gólov.";
+
+  const playersContainer = $("#poster-players");
+  playersContainer.replaceChildren();
+
+  state.selectedPlayers.forEach((player) => {
+    const item = document.createElement("div");
+    item.className = "poster-player";
+    item.innerHTML = `${shirtSvg()}<span></span>`;
+    item.querySelector("span").textContent = player;
+    playersContainer.append(item);
+  });
+}
+
+function wrapCanvasText(context, text, maxWidth) {
+  const words = String(text).split(/\s+/);
+  const lines = [];
+  let line = "";
+
+  words.forEach((word) => {
+    const candidate = line ? `${line} ${word}` : word;
+    if (context.measureText(candidate).width > maxWidth && line) {
+      lines.push(line);
+      line = word;
     } else {
-
-        outputCoach.textContent = "";
+      line = candidate;
     }
+  });
+
+  if (line) lines.push(line);
+  return lines.length ? lines : [""];
 }
 
+async function makePosterBlob() {
+  const poster = $("#match-poster");
+  const posterWidth = poster.scrollWidth;
+  const posterHeight = poster.scrollHeight;
+  const scale = 2;
+  const canvas = document.createElement("canvas");
+  const context = canvas.getContext("2d");
 
-/* ==================================================
-   OUTPUT DATE
-================================================== */
+  canvas.width = posterWidth * scale;
+  canvas.height = posterHeight * scale;
+  context.scale(scale, scale);
 
-function getCurrentDate() {
+  const red = getComputedStyle(document.documentElement)
+    .getPropertyValue("--red")
+    .trim() || "#c9282b";
 
-    const date =
-        new Date();
+  context.fillStyle = "#fff";
+  context.fillRect(0, 0, posterWidth, posterHeight);
 
+  const headerHeight = 70;
+  const scoreHeight = 120;
 
-    const day =
-        String(
-            date.getDate()
-        ).padStart(2, "0");
+  context.fillStyle = red;
+  context.fillRect(0, 0, posterWidth, headerHeight + scoreHeight);
 
+  context.fillStyle = "#fff";
+  context.font = "800 15px Arial";
+  context.textAlign = "left";
+  context.fillText("FKM", 20, 41);
+  context.font = "12px Arial";
+  context.fillText($("#poster-date").textContent, 76, 31);
+  context.fillText($("#poster-coach").textContent, 76, 50);
 
-    const month =
-        String(
-            date.getMonth() + 1
-        ).padStart(2, "0");
+  context.textAlign = "center";
+  context.font = "700 14px Arial";
+  context.fillText("FKM Karlova Ves", posterWidth * 0.25, 96);
+  context.fillText($("#poster-opponent").textContent, posterWidth * 0.75, 96);
 
+  context.font = "800 43px Arial";
+  context.fillText($("#poster-home-score").textContent, posterWidth * 0.25, 154);
+  context.fillText(":", posterWidth * 0.5, 151);
+  context.fillText($("#poster-away-score").textContent, posterWidth * 0.75, 154);
 
-    const year =
-        date.getFullYear();
+  let y = headerHeight + scoreHeight;
+  context.textAlign = "left";
+  context.fillStyle = red;
+  context.font = "800 13px Arial";
+  context.fillText("GÓLY", 18, y + 23);
 
+  context.fillStyle = "#242424";
+  context.font = "13px Arial";
+  const goalLines = wrapCanvasText(context, $("#poster-goals-text").textContent, posterWidth - 36);
+  goalLines.forEach((line, index) => context.fillText(line, 18, y + 47 + index * 18));
 
-    return `${day}.${month}.${year}`;
+  y += 66 + Math.max(0, goalLines.length - 1) * 18;
+  context.fillStyle = "#f8f8f8";
+  context.fillRect(0, y, posterWidth, posterHeight - y);
+
+  context.fillStyle = red;
+  context.font = "800 13px Arial";
+  context.fillText("NOMINÁCIA", 18, y + 23);
+
+  const columns = 3;
+  const cellWidth = (posterWidth - 36) / columns;
+
+  state.selectedPlayers.forEach((player, index) => {
+    const column = index % columns;
+    const row = Math.floor(index / columns);
+    const x = 18 + column * cellWidth;
+    const playerY = y + 48 + row * 58;
+
+    context.fillStyle = red;
+    context.beginPath();
+    context.moveTo(x + 8, playerY + 5);
+    context.lineTo(x + 14, playerY + 1);
+    context.lineTo(x + 20, playerY + 5);
+    context.lineTo(x + 25, playerY + 9);
+    context.lineTo(x + 22, playerY + 16);
+    context.lineTo(x + 19, playerY + 14);
+    context.lineTo(x + 19, playerY + 29);
+    context.lineTo(x + 9, playerY + 29);
+    context.lineTo(x + 9, playerY + 14);
+    context.lineTo(x + 6, playerY + 16);
+    context.lineTo(x + 3, playerY + 9);
+    context.closePath();
+    context.fill();
+
+    context.fillStyle = "#242424";
+    context.font = "10px Arial";
+    context.textAlign = "left";
+    context.fillText(player, x, playerY + 43, cellWidth - 8);
+  });
+
+  context.fillStyle = "#777";
+  context.textAlign = "center";
+  context.font = "800 9px Arial";
+  context.fillText("FKM KARLOVA VES", posterWidth / 2, posterHeight - 12);
+
+  return new Promise((resolve, reject) => {
+    canvas.toBlob((blob) => {
+      if (blob) resolve(blob);
+      else reject(new Error("Obrázok sa nepodarilo vytvoriť."));
+    }, "image/png");
+  });
 }
 
+async function downloadPoster() {
+  try {
+    const blob = await makePosterBlob();
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
 
-/* ==================================================
-   GOAL SUMMARY
-================================================== */
+    link.href = url;
+    link.download = `fkm-karlova-ves-zapas-${new Date().toISOString().slice(0, 10)}.png`;
+    document.body.append(link);
+    link.click();
+    link.remove();
 
-function renderGoalsSummary() {
+    window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+    showToast("Obrázok bol uložený.");
+  } catch (error) {
+    console.error(error);
+    showToast("Obrázok sa nepodarilo vytvoriť.");
+  }
+}
 
-    const summary = [];
+async function sharePoster() {
+  try {
+    const blob = await makePosterBlob();
+    const file = new File([blob], "fkm-karlova-ves-zapas.png", { type: "image/png" });
 
+    if (navigator.canShare?.({ files: [file] }) && navigator.share) {
+      await navigator.share({
+        title: "Výsledok zápasu FKM Karlova Ves",
+        files: [file]
+      });
+    } else {
+      await downloadPoster();
+      showToast("Zdieľanie nie je dostupné. Obrázok sa stiahol.");
+    }
+  } catch (error) {
+    if (error.name !== "AbortError") {
+      console.error(error);
+      showToast("Zdieľanie sa nepodarilo.");
+    }
+  }
+}
 
-    game.selectedPlayers.forEach(
-        player => {
+function resetMatch() {
+  pauseTimer();
+  localStorage.removeItem(STORAGE_KEY);
 
-            const count =
-                game.goals[player] || 0;
+  state.opponent = "";
+  state.squads = 1;
+  state.coach = "";
+  state.selectedPlayers = [];
+  state.homeGoals = {};
+  state.awayGoals = [];
+  state.elapsedSeconds = 0;
+  state.timerRunning = false;
+  state.lastTimerStart = null;
+  state.currentScreen = "setup";
 
+  $("#setup-form").reset();
+  $("#player-search").value = "";
+  $("#opponent-scorer").value = "";
+  $("#coach-field").classList.add("hidden");
 
-            if (count > 0) {
+  showScreen("setup");
+  showToast("Pripravený nový zápas.");
+}
 
-                if (count === 1) {
+function restoreUiFromState() {
+  $("#opponent").value = state.opponent;
+  $("#squads").value = String(state.squads);
+  if (state.coach) $("#coach").value = state.coach;
 
-                    summary.push(player);
+  $("#coach-field").classList.toggle("hidden", state.squads !== 2);
 
-                } else {
+  if (state.currentScreen !== "setup" && state.opponent) {
+    showScreen(state.currentScreen);
+  } else {
+    showScreen("setup");
+  }
+}
 
-                    summary.push(
-                        `${player} ${count}`
-                    );
-                }
-            }
-        }
-    );
+function bindEvents() {
+  $("#squads").addEventListener("change", (event) => {
+    const isTwoSquads = event.target.value === "2";
+    $("#coach-field").classList.toggle("hidden", !isTwoSquads);
+  });
 
+  $("#setup-form").addEventListener("submit", (event) => {
+    event.preventDefault();
 
-    if (game.opponentOwnGoals > 0) {
+    state.opponent = $("#opponent").value.trim();
+    state.squads = Number($("#squads").value) === 2 ? 2 : 1;
+    state.coach = state.squads === 2 ? $("#coach").value : "";
 
-        summary.push(
-            `${game.opponent} vl.`
-        );
+    if (!state.opponent) {
+      showToast("Zadaj názov súpera.");
+      return;
     }
 
+    saveState();
+    showScreen("lineup");
+  });
 
-    goalsText.textContent =
-        summary.length > 0
-            ? summary.join(", ")
-            : "-";
-}
+  $("#player-search").addEventListener("input", renderPlayers);
+  $("#back-to-setup").addEventListener("click", () => showScreen("setup"));
 
+  $("#start-match").addEventListener("click", () => {
+    if (state.selectedPlayers.length === 0) {
+      showToast("Vyber aspoň jedného hráča do nominácie.");
+      return;
+    }
 
-/* ==================================================
-   OUTPUT FIELD
-================================================== */
-
-function renderField() {
-
-    field.innerHTML = "";
-
-
-    /*
-        Positions are based on the
-        screenshot.
-
-        No goalkeeper.
-    */
-
-    const positions = [
-
-        { x: 25, y: 7 },
-
-        { x: 67, y: 7 },
-
-        { x: 25, y: 48 },
-
-        { x: 67, y: 48 },
-
-        { x: 25, y: 89 },
-
-        { x: 67, y: 89 },
-
-        { x: 46, y: 130 }
-
-    ];
-
-
-    game.selectedPlayers
-        .slice(
-            0,
-            positions.length
-        )
-        .forEach(
-            (player, index) => {
-
-                const position =
-                    positions[index];
-
-
-                const playerElement =
-                    document.createElement("div");
-
-
-                playerElement.className =
-                    "field-player";
-
-
-                playerElement.style.left =
-                    `${position.x}%`;
-
-
-                playerElement.style.top =
-                    `${position.y}px`;
-
-
-                playerElement.innerHTML = `
-
-                    <div class="jersey"></div>
-
-                    <div>
-                        ${player}
-                    </div>
-                `;
-
-
-                field.appendChild(
-                    playerElement
-                );
-            }
-        );
-}
-
-
-/* ==================================================
-   OUTPUT BACK
-================================================== */
-
-document
-    .getElementById("outputBack")
-    .addEventListener(
-        "click",
-        () => {
-
-            renderScoreRows();
-
-            updateScore();
-
-            showScreen(3);
-        }
+    state.homeGoals = Object.fromEntries(
+      state.selectedPlayers.map((player) => [player, state.homeGoals[player] || 0])
     );
+    saveState();
+    showScreen("match");
+  });
 
+  $("#back-to-lineup").addEventListener("click", () => {
+    pauseTimer();
+    showScreen("lineup");
+  });
 
-/* ==================================================
-   RESTART
-================================================== */
+  $("#go-to-output").addEventListener("click", () => {
+    pauseTimer();
+    showScreen("output");
+  });
 
-document
-    .getElementById("restartButton")
-    .addEventListener(
-        "click",
-        restartGame
-    );
+  $("#timer-toggle").addEventListener("click", () => {
+    if (state.timerRunning) pauseTimer();
+    else startTimer();
 
+    renderMatch();
+    if (state.timerRunning) {
+      $("#timer-toggle").textContent = "Pozastaviť stopky";
+      timerInterval = window.setInterval(updateTimerDisplay, 250);
+    }
+  });
 
-function restartGame() {
+  $("#timer-reset").addEventListener("click", () => {
+    resetTimer();
+    renderMatch();
+  });
 
-    stopTimer();
+  $("#score-reset").addEventListener("click", () => {
+    if (!window.confirm("Naozaj chceš vynulovať všetky góly?")) return;
 
+    state.homeGoals = Object.fromEntries(state.selectedPlayers.map((player) => [player, 0]));
+    state.awayGoals = [];
+    saveState();
+    renderMatch();
+  });
 
-    game.opponent =
-        "ŠK Slovan";
+  $("#add-opponent-goal").addEventListener("click", addOpponentGoal);
 
-    game.squads =
-        1;
+  $("#opponent-scorer").addEventListener("keydown", (event) => {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      addOpponentGoal();
+    }
+  });
 
-    game.coach =
-        "";
+  $("#back-to-match").addEventListener("click", () => showScreen("match"));
+  $("#download-image").addEventListener("click", downloadPoster);
+  $("#share-image").addEventListener("click", sharePoster);
 
-    game.selectedPlayers =
-        [];
-
-    game.goals =
-        {};
-
-    game.opponentOwnGoals =
-        0;
-
-    game.awayScore =
-        0;
-
-    game.timerSeconds =
-        0;
-
-
-    opponentInput.value =
-        "ŠK Slovan";
-
-
-    squadsSelect.value =
-        "1";
-
-
-    coachSelect.value =
-        "Peťo Šiko";
-
-
-    updateCoachVisibility();
-
-    updateTimerDisplay();
-
-    showScreen(1);
+  $("#restart-match").addEventListener("click", () => {
+    if (window.confirm("Začať nový zápas? Aktuálny zápis sa vymaže.")) resetMatch();
+  });
 }
 
-
-/* ==================================================
-   HELPER
-================================================== */
-
-function escapeId(text) {
-
-    return text
-        .replace(
-            /[^a-zA-Z0-9]/g,
-            "-"
-        );
-}
-
-
-/* ==================================================
-   INITIALIZATION
-================================================== */
-
-updateCoachVisibility();
-
-updateTimerDisplay();
+loadSavedState();
+bindEvents();
+restoreUiFromState();
