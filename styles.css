@@ -226,6 +226,12 @@ select:focus {
   display: none !important;
 }
 
+#coach-field:not(.hidden) {
+  display: grid !important;
+  gap: 10px;
+}
+
+
 .selection-summary,
 .section-title-row {
   display: flex;
