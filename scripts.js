@@ -1,9 +1,6 @@
 "use strict";
 
-/*
- * Počiatočný zoznam mien podľa priloženej ukážky.
- * Pred použitím ho porovnaj s úplnou súpiskou a uprav.
- */
+/* Mená podľa aktuálne uvedeného zoznamu. */
 const DEFAULT_PLAYERS = [
   "Bartoš",
   "Čičatka",
@@ -42,6 +39,7 @@ const state = {
   selectedPlayers: [],
   homeGoals: {},
   awayGoals: [],
+  ownGoals: 0,
   elapsedSeconds: 0,
   timerRunning: false,
   lastTimerStart: null,
@@ -69,9 +67,13 @@ function loadSavedState() {
       : [];
     state.homeGoals =
       data.homeGoals && typeof data.homeGoals === "object" ? data.homeGoals : {};
-    state.awayGoals = Array.isArray(data.awayGoals) ? data.awayGoals : [];
+    state.awayGoals = Array.isArray(data.awayGoals)
+      ? data.awayGoals.filter((goal) => goal && typeof goal.scorer === "string")
+      : [];
+    state.ownGoals = Math.max(0, Number(data.ownGoals) || 0);
     state.elapsedSeconds = Math.max(0, Number(data.elapsedSeconds) || 0);
     state.timerRunning = false;
+    state.lastTimerStart = null;
     state.currentScreen = ["setup", "lineup", "match", "output"].includes(data.currentScreen)
       ? data.currentScreen
       : "setup";
@@ -141,7 +143,9 @@ function sortedPlayers() {
 function renderPlayers() {
   const search = normalizeText($("#player-search").value);
   const list = $("#player-list");
-  const players = sortedPlayers().filter((name) => normalizeText(name).includes(search));
+  const players = sortedPlayers().filter((name) =>
+    normalizeText(name).includes(search)
+  );
 
   $("#selected-count").textContent = String(state.selectedPlayers.length);
   list.replaceChildren();
@@ -161,7 +165,9 @@ function renderPlayers() {
     button.textContent = name;
     button.setAttribute("aria-pressed", String(state.selectedPlayers.includes(name)));
 
-    if (state.selectedPlayers.includes(name)) button.classList.add("selected");
+    if (state.selectedPlayers.includes(name)) {
+      button.classList.add("selected");
+    }
 
     button.addEventListener("click", () => {
       const selected = state.selectedPlayers.includes(name);
@@ -178,14 +184,19 @@ function renderPlayers() {
 }
 
 function calculateElapsed() {
-  if (!state.timerRunning || !state.lastTimerStart) return state.elapsedSeconds;
-  return state.elapsedSeconds + Math.floor((Date.now() - state.lastTimerStart) / 1000);
+  if (!state.timerRunning || !state.lastTimerStart) {
+    return state.elapsedSeconds;
+  }
+
+  return state.elapsedSeconds +
+    Math.floor((Date.now() - state.lastTimerStart) / 1000);
 }
 
 function formatTime(seconds) {
   const safeSeconds = Math.max(0, Math.floor(seconds));
   const minutes = Math.floor(safeSeconds / 60);
   const remainder = safeSeconds % 60;
+
   return `${String(minutes).padStart(2, "0")}:${String(remainder).padStart(2, "0")}`;
 }
 
@@ -198,9 +209,9 @@ function startTimer() {
 
   state.timerRunning = true;
   state.lastTimerStart = Date.now();
-  $("#timer-toggle").textContent = "Pozastaviť stopky";
   timerInterval = window.setInterval(updateTimerDisplay, 250);
   updateTimerDisplay();
+  renderMatch();
 }
 
 function pauseTimer() {
@@ -211,125 +222,27 @@ function pauseTimer() {
   state.lastTimerStart = null;
   window.clearInterval(timerInterval);
   timerInterval = null;
-  $("#timer-toggle").textContent = "Pokračovať";
   updateTimerDisplay();
   saveState();
+  renderMatch();
 }
 
 function resetTimer() {
   pauseTimer();
   state.elapsedSeconds = 0;
-  $("#timer-toggle").textContent = "Spustiť stopky";
   updateTimerDisplay();
   saveState();
+  renderMatch();
 }
 
 function totalGoals(goals) {
-  return Object.values(goals).reduce((sum, value) => sum + (Number(value) || 0), 0);
-}
-
-function renderMatch() {
-  const opponent = state.opponent || "Súper";
-  const ownGoalName = `${opponent} vl.`;
-
-  $("#away-team-name").textContent = opponent;
-  $("#home-score").textContent = String(totalGoals(state.homeGoals));
-  $("#away-score").textContent = String(state.awayGoals.length);
-  $("#timer-toggle").textContent = state.timerRunning
-    ? "Pozastaviť stopky"
-    : state.elapsedSeconds > 0
-      ? "Pokračovať"
-      : "Spustiť stopky";
-
-  updateTimerDisplay();
-
-  const list = $("#scorer-list");
-  list.replaceChildren();
-
-  // Hráči nášho tímu, abecedne.
-  const sortedPlayers = [...state.selectedPlayers].sort((a, b) =>
-    a.localeCompare(b, "sk")
+  return Object.values(goals).reduce(
+    (sum, value) => sum + (Number(value) || 0),
+    0
   );
-
-  sortedPlayers.forEach((player) => {
-    addScorerRow(list, player, Number(state.homeGoals[player]) || 0, {
-      onAdd: () => {
-        state.homeGoals[player] = (Number(state.homeGoals[player]) || 0) + 1;
-        saveState();
-        renderMatch();
-      },
-      onRemove: () => {
-        state.homeGoals[player] = Math.max(
-          0,
-          (Number(state.homeGoals[player]) || 0) - 1
-        );
-        saveState();
-        renderMatch();
-      }
-    });
-  });
-
-  // Góly hráčov súpera. Meno streľca sa zachová pri každom góle.
-  state.awayGoals.forEach((goal, index) => {
-    if (goal.scorer === ownGoalName) return;
-
-    const scorer = goal.scorer || "Neznámy strelec";
-
-    addScorerRow(list, `${scorer} · súper`, 1, {
-      onAdd: () => {
-        state.awayGoals.push({
-          scorer,
-          minute: formatTime(calculateElapsed())
-        });
-        saveState();
-        renderMatch();
-      },
-      onRemove: () => {
-        const goalIndex = state.awayGoals.findIndex(
-          (item, itemIndex) =>
-            itemIndex >= index &&
-            item.scorer === scorer &&
-            item.scorer !== ownGoalName
-        );
-
-        if (goalIndex !== -1) {
-          state.awayGoals.splice(goalIndex, 1);
-          saveState();
-          renderMatch();
-        }
-      }
-    });
-  });
-
-  // Vlastný gól súpera je vždy posledný.
-  const ownGoalsCount = state.awayGoals.filter(
-    (goal) => goal.scorer === ownGoalName
-  ).length;
-
-  addScorerRow(list, ownGoalName, ownGoalsCount, {
-    onAdd: () => {
-      state.awayGoals.push({
-        scorer: ownGoalName,
-        minute: formatTime(calculateElapsed())
-      });
-      saveState();
-      renderMatch();
-    },
-    onRemove: () => {
-      const index = state.awayGoals.findLastIndex(
-        (goal) => goal.scorer === ownGoalName
-      );
-
-      if (index !== -1) {
-        state.awayGoals.splice(index, 1);
-        saveState();
-        renderMatch();
-      }
-    }
-  });
 }
 
-function addScorerRow(list, name, count, actions) {
+function makeGoalRow(list, name, count, onAdd, onRemove) {
   const row = document.createElement("div");
   row.className = "scorer-row";
 
@@ -346,24 +259,136 @@ function addScorerRow(list, name, count, actions) {
   addButton.className = "goal-button";
   addButton.textContent = "+";
   addButton.setAttribute("aria-label", `Pridať gól: ${name}`);
-  addButton.addEventListener("click", actions.onAdd);
+  addButton.addEventListener("click", onAdd);
 
   const removeButton = document.createElement("button");
   removeButton.type = "button";
   removeButton.className = "goal-button minus";
   removeButton.textContent = "−";
-  removeButton.disabled = count === 0;
+  removeButton.disabled = count <= 0;
   removeButton.setAttribute("aria-label", `Odobrať gól: ${name}`);
-  removeButton.addEventListener("click", actions.onRemove);
+  removeButton.addEventListener("click", onRemove);
 
   row.append(scorerName, scorerCount, addButton, removeButton);
   list.append(row);
+}
+
+function renderMatch() {
+  const opponent = state.opponent || "Súper";
+  const ownGoalName = `${opponent} vl.`;
+
+  $("#away-team-name").textContent = opponent;
+  $("#home-score").textContent = String(totalGoals(state.homeGoals) + state.ownGoals);
+  $("#away-score").textContent = String(state.awayGoals.length);
+  $("#timer-toggle").textContent = state.timerRunning
+    ? "Pozastaviť stopky"
+    : state.elapsedSeconds > 0
+      ? "Pokračovať"
+      : "Spustiť stopky";
+
+  updateTimerDisplay();
+
+  const homeList = $("#scorer-list");
+  homeList.replaceChildren();
+
+  const nominatedPlayers = [...state.selectedPlayers].sort((a, b) =>
+    a.localeCompare(b, "sk")
+  );
+
+  nominatedPlayers.forEach((player) => {
+    const count = Number(state.homeGoals[player]) || 0;
+
+    makeGoalRow(
+      homeList,
+      player,
+      count,
+      () => {
+        state.homeGoals[player] = (Number(state.homeGoals[player]) || 0) + 1;
+        saveState();
+        renderMatch();
+      },
+      () => {
+        state.homeGoals[player] = Math.max(0, (Number(state.homeGoals[player]) || 0) - 1);
+        saveState();
+        renderMatch();
+      }
+    );
+  });
+
+  // Súperov vlastný gól je posledný v zozname FKM
+  // a zvyšuje/znižuje skóre FKM Karlova Ves.
+  makeGoalRow(
+    homeList,
+    ownGoalName,
+    state.ownGoals,
+    () => {
+      state.ownGoals += 1;
+      saveState();
+      renderMatch();
+    },
+    () => {
+      state.ownGoals = Math.max(0, state.ownGoals - 1);
+      saveState();
+      renderMatch();
+    }
+  );
+
+  // Riadne góly súpera majú vlastnú sekciu a menia súperove skóre.
+  const awayList = $("#opponent-scorer-list");
+  awayList.replaceChildren();
+
+  state.awayGoals.forEach((goal, index) => {
+    const scorerName = goal.scorer || "Neznámy strelec";
+
+    makeGoalRow(
+      awayList,
+      scorerName,
+      1,
+      () => {
+        state.awayGoals.push({
+          scorer: scorerName,
+          minute: formatTime(calculateElapsed())
+        });
+        saveState();
+        renderMatch();
+      },
+      () => {
+        state.awayGoals.splice(index, 1);
+        saveState();
+        renderMatch();
+      }
+    );
+  });
+}
+
+function addOpponentGoal() {
+  const input = $("#opponent-scorer");
+  const scorer = input.value.trim();
+
+  if (!scorer) {
+    input.focus();
+    showToast("Zadaj meno strelca súpera.");
+    return;
+  }
+
+  state.awayGoals.push({
+    scorer,
+    minute: formatTime(calculateElapsed())
+  });
+
+  input.value = "";
+  saveState();
+  renderMatch();
 }
 
 function getGoalsSummary() {
   const home = Object.entries(state.homeGoals)
     .filter(([, count]) => Number(count) > 0)
     .flatMap(([name, count]) => Array(Number(count)).fill(name));
+
+  if (state.ownGoals > 0) {
+    home.push(...Array(state.ownGoals).fill(`${state.opponent || "Súper"} vl.`));
+  }
 
   const away = state.awayGoals.map((goal) => goal.scorer);
   return { home, away };
@@ -389,14 +414,18 @@ function renderOutput() {
     state.squads === 2 && state.coach ? `Tréner: ${state.coach}` : "";
 
   $("#poster-opponent").textContent = state.opponent || "Súper";
-  $("#poster-home-score").textContent = String(totalGoals(state.homeGoals));
+  $("#poster-home-score").textContent = String(totalGoals(state.homeGoals) + state.ownGoals);
   $("#poster-away-score").textContent = String(state.awayGoals.length);
 
   const { home, away } = getGoalsSummary();
   const goalLines = [];
 
-  if (home.length) goalLines.push(`FKM Karlova Ves: ${home.join(", ")}`);
-  if (away.length) goalLines.push(`${state.opponent || "Súper"}: ${away.join(", ")}`);
+  if (home.length) {
+    goalLines.push(`FKM Karlova Ves: ${home.join(", ")}`);
+  }
+  if (away.length) {
+    goalLines.push(`${state.opponent || "Súper"}: ${away.join(", ")}`);
+  }
 
   $("#poster-goals-text").textContent =
     goalLines.length ? goalLines.join(" · ") : "Zatiaľ bez gólov.";
@@ -420,6 +449,7 @@ function wrapCanvasText(context, text, maxWidth) {
 
   words.forEach((word) => {
     const candidate = line ? `${line} ${word}` : word;
+
     if (context.measureText(candidate).width > maxWidth && line) {
       lines.push(line);
       line = word;
@@ -483,8 +513,15 @@ async function makePosterBlob() {
 
   context.fillStyle = "#242424";
   context.font = "13px Arial";
-  const goalLines = wrapCanvasText(context, $("#poster-goals-text").textContent, posterWidth - 36);
-  goalLines.forEach((line, index) => context.fillText(line, 18, y + 47 + index * 18));
+  const goalLines = wrapCanvasText(
+    context,
+    $("#poster-goals-text").textContent,
+    posterWidth - 36
+  );
+
+  goalLines.forEach((line, index) => {
+    context.fillText(line, 18, y + 47 + index * 18);
+  });
 
   y += 66 + Math.max(0, goalLines.length - 1) * 18;
   context.fillStyle = "#f8f8f8";
@@ -561,7 +598,9 @@ async function downloadPoster() {
 async function sharePoster() {
   try {
     const blob = await makePosterBlob();
-    const file = new File([blob], "fkm-karlova-ves-zapas.png", { type: "image/png" });
+    const file = new File([blob], "fkm-karlova-ves-zapas.png", {
+      type: "image/png"
+    });
 
     if (navigator.canShare?.({ files: [file] }) && navigator.share) {
       await navigator.share({
@@ -590,6 +629,7 @@ function resetMatch() {
   state.selectedPlayers = [];
   state.homeGoals = {};
   state.awayGoals = [];
+  state.ownGoals = 0;
   state.elapsedSeconds = 0;
   state.timerRunning = false;
   state.lastTimerStart = null;
@@ -607,7 +647,10 @@ function resetMatch() {
 function restoreUiFromState() {
   $("#opponent").value = state.opponent;
   $("#squads").value = String(state.squads);
-  if (state.coach) $("#coach").value = state.coach;
+
+  if (state.coach) {
+    $("#coach").value = state.coach;
+  }
 
   $("#coach-field").classList.toggle("hidden", state.squads !== 2);
 
@@ -620,8 +663,8 @@ function restoreUiFromState() {
 
 function bindEvents() {
   $("#squads").addEventListener("change", (event) => {
-    const isTwoSquads = event.target.value === "2";
-    $("#coach-field").classList.toggle("hidden", !isTwoSquads);
+    const showCoach = event.target.value === "2";
+    $("#coach-field").classList.toggle("hidden", !showCoach);
   });
 
   $("#setup-form").addEventListener("submit", (event) => {
@@ -676,13 +719,9 @@ function bindEvents() {
     } else {
       startTimer();
     }
-    renderMatch();
   });
 
-  $("#timer-reset").addEventListener("click", () => {
-    resetTimer();
-    renderMatch();
-  });
+  $("#timer-reset").addEventListener("click", resetTimer);
 
   $("#score-reset").addEventListener("click", () => {
     if (!window.confirm("Naozaj chceš vynulovať všetky góly?")) return;
@@ -691,12 +730,31 @@ function bindEvents() {
       state.selectedPlayers.map((player) => [player, 0])
     );
     state.awayGoals = [];
+    state.ownGoals = 0;
 
     saveState();
     renderMatch();
   });
-}
 
+  $("#add-opponent-goal").addEventListener("click", addOpponentGoal);
+
+  $("#opponent-scorer").addEventListener("keydown", (event) => {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      addOpponentGoal();
+    }
+  });
+
+  $("#back-to-match").addEventListener("click", () => showScreen("match"));
+  $("#download-image").addEventListener("click", downloadPoster);
+  $("#share-image").addEventListener("click", sharePoster);
+
+  $("#restart-match").addEventListener("click", () => {
+    if (window.confirm("Začať nový zápas? Aktuálny zápis sa vymaže.")) {
+      resetMatch();
+    }
+  });
+}
 
 loadSavedState();
 bindEvents();
