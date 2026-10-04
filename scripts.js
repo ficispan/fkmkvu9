@@ -147,6 +147,11 @@ function renderPlayers() {
   $("#selected-count").textContent = String(state.selectedPlayers.length);
   list.replaceChildren();
 
+  $("#screen-lineup").querySelector(".screen-heading").setAttribute(
+    "data-selected-count",
+    `${state.selectedPlayers.length} vybraných`
+  );
+
   if (players.length === 0) {
     const empty = document.createElement("p");
     empty.className = "muted";
