@@ -66,9 +66,7 @@ function loadSavedState() {
       : [];
     state.homeGoals =
       data.homeGoals && typeof data.homeGoals === "object" ? data.homeGoals : {};
-    state.awayGoals = Array.isArray(data.awayGoals)
-      ? data.awayGoals.filter((goal) => goal && typeof goal.scorer === "string")
-      : [];
+    state.awayGoals = Array.isArray(data.awayGoals) ? data.awayGoals : [];
     state.ownGoals = Math.max(0, Number(data.ownGoals) || 0);
     state.elapsedSeconds = Math.max(0, Number(data.elapsedSeconds) || 0);
     state.timerRunning = false;
@@ -169,9 +167,8 @@ function renderPlayers() {
     }
 
     button.addEventListener("click", () => {
-      const alreadySelected = state.selectedPlayers.includes(name);
-
-      state.selectedPlayers = alreadySelected
+      const selected = state.selectedPlayers.includes(name);
+      state.selectedPlayers = selected
         ? state.selectedPlayers.filter((player) => player !== name)
         : [...state.selectedPlayers, name];
 
@@ -226,7 +223,14 @@ function pauseTimer() {
 }
 
 function resetTimer() {
-  pauseTimer();
+  if (state.timerRunning) {
+    state.elapsedSeconds = calculateElapsed();
+    state.timerRunning = false;
+    state.lastTimerStart = null;
+    window.clearInterval(timerInterval);
+    timerInterval = null;
+  }
+
   state.elapsedSeconds = 0;
   saveState();
   renderMatch();
@@ -275,10 +279,10 @@ function renderMatch() {
   const ownGoalName = `${opponent} vl.`;
 
   $("#away-team-name").textContent = opponent;
+  $("#opponent-dock-name").textContent = opponent;
   $("#home-score").textContent = String(totalGoals(state.homeGoals) + state.ownGoals);
   $("#away-score").textContent = String(state.awayGoals.length);
-  $("#opponent-scorer-label").textContent = opponent;
-  $("#opponent-scorer").placeholder = "Zadaj strelca súpera";
+  $("#opponent-goal-count").textContent = String(state.awayGoals.length);
   $("#timer-toggle").textContent = state.timerRunning
     ? "Pozastaviť stopky"
     : state.elapsedSeconds > 0
@@ -287,8 +291,8 @@ function renderMatch() {
 
   updateTimerDisplay();
 
-  const homeList = $("#scorer-list");
-  homeList.replaceChildren();
+  const list = $("#scorer-list");
+  list.replaceChildren();
 
   [...state.selectedPlayers]
     .sort((a, b) => a.localeCompare(b, "sk"))
@@ -296,19 +300,16 @@ function renderMatch() {
       const count = Number(state.homeGoals[player]) || 0;
 
       makeGoalRow(
-        homeList,
+        list,
         player,
         count,
         () => {
-          state.homeGoals[player] = (Number(state.homeGoals[player]) || 0) + 1;
+          state.homeGoals[player] = count + 1;
           saveState();
           renderMatch();
         },
         () => {
-          state.homeGoals[player] = Math.max(
-            0,
-            (Number(state.homeGoals[player]) || 0) - 1
-          );
+          state.homeGoals[player] = Math.max(0, count - 1);
           saveState();
           renderMatch();
         }
@@ -316,7 +317,7 @@ function renderMatch() {
     });
 
   makeGoalRow(
-    homeList,
+    list,
     ownGoalName,
     state.ownGoals,
     () => {
@@ -332,19 +333,6 @@ function renderMatch() {
   );
 }
 
-function addOpponentGoal() {
-  const scorer = $("#opponent-scorer").value.trim();
-
-  state.awayGoals.push({
-    scorer: scorer || "Strelec súpera",
-    minute: formatTime(calculateElapsed())
-  });
-
-  $("#opponent-scorer").value = "";
-  saveState();
-  renderMatch();
-}
-
 function getGoalsSummary() {
   const home = Object.entries(state.homeGoals)
     .filter(([, count]) => Number(count) > 0)
@@ -354,7 +342,7 @@ function getGoalsSummary() {
     home.push(...Array(state.ownGoals).fill(`${state.opponent || "Súper"} vl.`));
   }
 
-  const away = state.awayGoals.map((goal) => goal.scorer);
+  const away = Array(state.awayGoals.length).fill("Súper");
   return { home, away };
 }
 
@@ -425,14 +413,14 @@ function wrapCanvasText(context, text, maxWidth) {
 
 async function makePosterBlob() {
   const poster = $("#match-poster");
-  const posterWidth = poster.scrollWidth;
-  const posterHeight = poster.scrollHeight;
+  const width = poster.scrollWidth;
+  const height = poster.scrollHeight;
   const scale = 2;
   const canvas = document.createElement("canvas");
   const context = canvas.getContext("2d");
 
-  canvas.width = posterWidth * scale;
-  canvas.height = posterHeight * scale;
+  canvas.width = width * scale;
+  canvas.height = height * scale;
   context.scale(scale, scale);
 
   const red = getComputedStyle(document.documentElement)
@@ -440,17 +428,14 @@ async function makePosterBlob() {
     .trim() || "#c9282b";
 
   context.fillStyle = "#fff";
-  context.fillRect(0, 0, posterWidth, posterHeight);
-
-  const headerHeight = 70;
-  const scoreHeight = 120;
+  context.fillRect(0, 0, width, height);
 
   context.fillStyle = red;
-  context.fillRect(0, 0, posterWidth, headerHeight + scoreHeight);
+  context.fillRect(0, 0, width, 190);
 
   context.fillStyle = "#fff";
-  context.font = "800 15px Arial";
   context.textAlign = "left";
+  context.font = "800 15px Arial";
   context.fillText("FKM", 20, 41);
   context.font = "12px Arial";
   context.fillText($("#poster-date").textContent, 76, 31);
@@ -458,15 +443,14 @@ async function makePosterBlob() {
 
   context.textAlign = "center";
   context.font = "700 14px Arial";
-  context.fillText("FKM Karlova Ves", posterWidth * 0.25, 96);
-  context.fillText($("#poster-opponent").textContent, posterWidth * 0.75, 96);
-
+  context.fillText("FKM Karlova Ves", width * 0.25, 96);
+  context.fillText($("#poster-opponent").textContent, width * 0.75, 96);
   context.font = "800 43px Arial";
-  context.fillText($("#poster-home-score").textContent, posterWidth * 0.25, 154);
-  context.fillText(":", posterWidth * 0.5, 151);
-  context.fillText($("#poster-away-score").textContent, posterWidth * 0.75, 154);
+  context.fillText($("#poster-home-score").textContent, width * 0.25, 154);
+  context.fillText(":", width * 0.5, 151);
+  context.fillText($("#poster-away-score").textContent, width * 0.75, 154);
 
-  let y = headerHeight + scoreHeight;
+  let y = 190;
   context.textAlign = "left";
   context.fillStyle = red;
   context.font = "800 13px Arial";
@@ -474,33 +458,23 @@ async function makePosterBlob() {
 
   context.fillStyle = "#242424";
   context.font = "13px Arial";
-
-  const goalLines = wrapCanvasText(
-    context,
-    $("#poster-goals-text").textContent,
-    posterWidth - 36
-  );
-
-  goalLines.forEach((line, index) => {
-    context.fillText(line, 18, y + 47 + index * 18);
-  });
+  const goalLines = wrapCanvasText(context, $("#poster-goals-text").textContent, width - 36);
+  goalLines.forEach((line, index) => context.fillText(line, 18, y + 47 + index * 18));
 
   y += 66 + Math.max(0, goalLines.length - 1) * 18;
   context.fillStyle = "#f8f8f8";
-  context.fillRect(0, y, posterWidth, posterHeight - y);
+  context.fillRect(0, y, width, height - y);
 
   context.fillStyle = red;
   context.font = "800 13px Arial";
   context.fillText("NOMINÁCIA", 18, y + 23);
 
   const columns = 3;
-  const cellWidth = (posterWidth - 36) / columns;
+  const cellWidth = (width - 36) / columns;
 
   state.selectedPlayers.forEach((player, index) => {
-    const column = index % columns;
-    const row = Math.floor(index / columns);
-    const x = 18 + column * cellWidth;
-    const playerY = y + 48 + row * 58;
+    const x = 18 + (index % columns) * cellWidth;
+    const playerY = y + 48 + Math.floor(index / columns) * 58;
 
     context.fillStyle = red;
     context.beginPath();
@@ -527,7 +501,7 @@ async function makePosterBlob() {
   context.fillStyle = "#777";
   context.textAlign = "center";
   context.font = "800 9px Arial";
-  context.fillText("FKM KARLOVA VES", posterWidth / 2, posterHeight - 12);
+  context.fillText("FKM KARLOVA VES", width / 2, height - 12);
 
   return new Promise((resolve, reject) => {
     canvas.toBlob((blob) => {
@@ -582,7 +556,11 @@ async function sharePoster() {
 }
 
 function resetMatch() {
-  pauseTimer();
+  if (state.timerRunning) {
+    window.clearInterval(timerInterval);
+    timerInterval = null;
+  }
+
   localStorage.removeItem(STORAGE_KEY);
 
   state.opponent = "";
@@ -599,7 +577,6 @@ function resetMatch() {
 
   $("#setup-form").reset();
   $("#player-search").value = "";
-  $("#opponent-scorer").value = "";
   $("#coach-field").classList.add("hidden");
 
   showScreen("setup");
@@ -609,7 +586,6 @@ function resetMatch() {
 function restoreUiFromState() {
   $("#opponent").value = state.opponent;
   $("#squads").value = String(state.squads);
-
   if (state.coach) $("#coach").value = state.coach;
 
   $("#coach-field").classList.toggle("hidden", state.squads !== 2);
@@ -692,13 +668,13 @@ function bindEvents() {
     renderMatch();
   });
 
-  $("#opponent-goal-add").addEventListener("click", addOpponentGoal);
-
-  $("#opponent-scorer").addEventListener("keydown", (event) => {
-    if (event.key === "Enter") {
-      event.preventDefault();
-      addOpponentGoal();
-    }
+  $("#opponent-goal-add").addEventListener("click", () => {
+    state.awayGoals.push({
+      scorer: "Súper",
+      minute: formatTime(calculateElapsed())
+    });
+    saveState();
+    renderMatch();
   });
 
   $("#opponent-goal-remove").addEventListener("click", () => {
