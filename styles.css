@@ -702,7 +702,7 @@ h2 {
 
 /* Screen 2 */
 #screen-lineup .screen-heading h1 {
-  font-size: 90%;
+  font-size: 95%;
 }
 
 #screen-lineup .screen-heading .muted {
@@ -720,7 +720,7 @@ h2 {
   right: 0;
   bottom: 0;
   color: #747474;
-  font-size: 13px;
+  font-size: 14px;
   white-space: nowrap;
 }
 
