@@ -809,3 +809,19 @@ h2 {
   display: none !important;
 }
 
+.brandbar::before,
+.brandbar::after {
+  pointer-events: none !important;
+}
+
+.brandbar .header-nav-button {
+  position: relative;
+  z-index: 2;
+  display: grid !important;
+  pointer-events: auto;
+}
+
+#screen-lineup .button-row {
+  display: none !important;
+}
+
