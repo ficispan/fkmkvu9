@@ -632,7 +632,7 @@ function bindEvents() {
     state.coach = state.squads === 2 ? $("#coach").value : "";
 
     if (!state.opponent) {
-      showToast("Zadaj názov súpera.");
+      $("#opponent").focus();
       return;
     }
 
@@ -650,8 +650,12 @@ function bindEvents() {
     }
 
     state.homeGoals = Object.fromEntries(
-      state.selectedPlayers.map((player) => [player, state.homeGoals[player] || 0])
+      state.selectedPlayers.map((player) => [
+        player,
+        Number(state.homeGoals[player]) || 0
+      ])
     );
+
     saveState();
     showScreen("match");
   });
@@ -667,14 +671,12 @@ function bindEvents() {
   });
 
   $("#timer-toggle").addEventListener("click", () => {
-    if (state.timerRunning) pauseTimer();
-    else startTimer();
-
-    renderMatch();
     if (state.timerRunning) {
-      $("#timer-toggle").textContent = "Pozastaviť stopky";
-      timerInterval = window.setInterval(updateTimerDisplay, 250);
+      pauseTimer();
+    } else {
+      startTimer();
     }
+    renderMatch();
   });
 
   $("#timer-reset").addEventListener("click", () => {
@@ -685,27 +687,16 @@ function bindEvents() {
   $("#score-reset").addEventListener("click", () => {
     if (!window.confirm("Naozaj chceš vynulovať všetky góly?")) return;
 
-    state.homeGoals = Object.fromEntries(state.selectedPlayers.map((player) => [player, 0]));
+    state.homeGoals = Object.fromEntries(
+      state.selectedPlayers.map((player) => [player, 0])
+    );
     state.awayGoals = [];
+
     saveState();
     renderMatch();
   });
-
-  $("#opponent-scorer").addEventListener("keydown", (event) => {
-    if (event.key === "Enter") {
-      event.preventDefault();
-      addOpponentGoal();
-    }
-  });
-
-  $("#back-to-match").addEventListener("click", () => showScreen("match"));
-  $("#download-image").addEventListener("click", downloadPoster);
-  $("#share-image").addEventListener("click", sharePoster);
-
-  $("#restart-match").addEventListener("click", () => {
-    if (window.confirm("Začať nový zápas? Aktuálny zápis sa vymaže.")) resetMatch();
-  });
 }
+
 
 loadSavedState();
 bindEvents();
