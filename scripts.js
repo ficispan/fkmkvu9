@@ -93,6 +93,8 @@ function saveState() {
 
 function showToast(message) {
   const toast = $("#toast");
+  if (!toast) return;
+
   toast.textContent = message;
   toast.classList.add("visible");
 
@@ -111,6 +113,8 @@ function showScreen(screenName) {
   };
 
   Object.entries(screens).forEach(([name, element]) => {
+    if (!element) return;
+
     const active = name === screenName;
     element.classList.toggle("active", active);
     element.hidden = !active;
@@ -139,6 +143,7 @@ function sortedPlayers() {
 
 function renderPlayers() {
   const list = $("#player-list");
+  if (!list) return;
 
   $("#selected-count").textContent = String(state.selectedPlayers.length);
 
@@ -196,7 +201,8 @@ function formatTime(seconds) {
 }
 
 function updateTimerDisplay() {
-  $("#timer-display").textContent = formatTime(calculateElapsed());
+  const display = $("#timer-display");
+  if (display) display.textContent = formatTime(calculateElapsed());
 }
 
 function startTimer() {
@@ -594,7 +600,10 @@ function resetMatch() {
 function restoreUiFromState() {
   $("#opponent").value = state.opponent;
   $("#squads").value = String(state.squads);
-  if (state.coach) $("#coach").value = state.coach;
+
+  if (state.coach) {
+    $("#coach").value = state.coach;
+  }
 
   $("#coach-field").classList.toggle("hidden", state.squads !== 2);
 
@@ -603,6 +612,23 @@ function restoreUiFromState() {
   } else {
     showScreen("setup");
   }
+}
+
+function startMatchFromLineup() {
+  if (state.selectedPlayers.length === 0) {
+    showToast("Vyber aspoň jedného hráča do nominácie.");
+    return;
+  }
+
+  state.homeGoals = Object.fromEntries(
+    state.selectedPlayers.map((player) => [
+      player,
+      Number(state.homeGoals[player]) || 0
+    ])
+  );
+
+  saveState();
+  showScreen("match");
 }
 
 function bindEvents() {
@@ -626,78 +652,53 @@ function bindEvents() {
     showScreen("lineup");
   });
 
-  $("#back-to-setup").addEventListener("click", () => showScreen("setup"));
+  $("#player-search")?.addEventListener("input", renderPlayers);
 
-  $("#start-match").addEventListener("click", () => {
-    if (state.selectedPlayers.length === 0) {
-      showToast("Vyber aspoň jedného hráča do nominácie.");
-      return;
-    }
+  // Zachované spodné tlačidlá, ak sú v HTML.
+  $("#back-to-setup")?.addEventListener("click", () => showScreen("setup"));
+  $("#start-match")?.addEventListener("click", startMatchFromLineup);
 
-    state.homeGoals = Object.fromEntries(
-      state.selectedPlayers.map((player) => [
-        player,
-        Number(state.homeGoals[player]) || 0
-      ])
-    );
-
-    saveState();
-    showScreen("match");
-  });
-
-  $("#lineup-back").addEventListener("click", () => {
-    if (state.currentScreen === "lineup") {
-      showScreen("setup");
-    } else if (state.currentScreen === "match") {
+  // Hlavičkové šípky.
+  $("#lineup-back")?.addEventListener("click", () => {
+    if (state.currentScreen === "match") {
       pauseTimer();
       showScreen("lineup");
+    } else if (state.currentScreen === "output") {
+      showScreen("match");
     } else {
       showScreen("setup");
     }
   });
 
-  $("#lineup-next").addEventListener("click", () => {
-    if (state.currentScreen === "lineup") {
-      if (state.selectedPlayers.length === 0) {
-        showToast("Vyber aspoň jedného hráča do nominácie.");
-        return;
-      }
-
-      state.homeGoals = Object.fromEntries(
-        state.selectedPlayers.map((player) => [
-          player,
-          Number(state.homeGoals[player]) || 0
-        ])
-      );
-
-      saveState();
-      showScreen("match");
+  $("#lineup-next")?.addEventListener("click", () => {
+    if (state.currentScreen === "setup") {
+      $("#setup-form").requestSubmit();
+    } else if (state.currentScreen === "lineup") {
+      startMatchFromLineup();
     } else if (state.currentScreen === "match") {
       pauseTimer();
       showScreen("output");
-    } else if (state.currentScreen === "setup") {
-      $("#setup-form").requestSubmit();
     }
   });
 
-  $("#back-to-lineup").addEventListener("click", () => {
+  $("#back-to-lineup")?.addEventListener("click", () => {
     pauseTimer();
     showScreen("lineup");
   });
 
-  $("#go-to-output").addEventListener("click", () => {
+  $("#go-to-output")?.addEventListener("click", () => {
     pauseTimer();
     showScreen("output");
   });
 
-  $("#timer-toggle").addEventListener("click", () => {
+  $("#timer-toggle")?.addEventListener("click", () => {
     if (state.timerRunning) pauseTimer();
     else startTimer();
   });
 
-  $("#timer-reset").addEventListener("click", resetTimer);
+  $("#timer-reset")?.addEventListener("click", resetTimer);
 
-  $("#score-reset").addEventListener("click", () => {
+  $("#score-reset")?.addEventListener("click", () => {
     if (!window.confirm("Naozaj chceš vynulovať všetky góly?")) return;
 
     state.homeGoals = Object.fromEntries(
@@ -710,7 +711,7 @@ function bindEvents() {
     renderMatch();
   });
 
-  $("#opponent-goal-add").addEventListener("click", () => {
+  $("#opponent-goal-add")?.addEventListener("click", () => {
     state.awayGoals.push({
       scorer: "Súper",
       minute: formatTime(calculateElapsed())
@@ -719,7 +720,7 @@ function bindEvents() {
     renderMatch();
   });
 
-  $("#opponent-goal-remove").addEventListener("click", () => {
+  $("#opponent-goal-remove")?.addEventListener("click", () => {
     if (state.awayGoals.length === 0) return;
 
     state.awayGoals.pop();
@@ -727,11 +728,11 @@ function bindEvents() {
     renderMatch();
   });
 
-  $("#back-to-match").addEventListener("click", () => showScreen("match"));
-  $("#download-image").addEventListener("click", downloadPoster);
-  $("#share-image").addEventListener("click", sharePoster);
+  $("#back-to-match")?.addEventListener("click", () => showScreen("match"));
+  $("#download-image")?.addEventListener("click", downloadPoster);
+  $("#share-image")?.addEventListener("click", sharePoster);
 
-  $("#restart-match").addEventListener("click", () => {
+  $("#restart-match")?.addEventListener("click", () => {
     if (window.confirm("Začať nový zápas? Aktuálny zápis sa vymaže.")) {
       resetMatch();
     }
