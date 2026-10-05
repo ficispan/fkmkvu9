@@ -352,12 +352,16 @@ select:focus {
 
 .score {
   display: flex;
-  gap: 10px;
+  gap: 8px;
   align-items: center;
-  padding: 0 11px;
-  font-size: clamp(28px, 9vw, 42px);
+  padding: 0 8px;
+  font-size: clamp(25px, 7vw, 36px);
   font-weight: 800;
   font-variant-numeric: tabular-nums;
+}
+
+.scoreboard .team-name {
+  font-size: clamp(13px, 3.8vw, 17px);
 }
 
 .score-dash {
@@ -886,3 +890,93 @@ main {
   outline-offset: 2px;
   border-radius: 8px;
 }
+
+/* Screen 3: hlavička, skóre a panel súpera zostávajú ukotvené. */
+#screen-match.active {
+  height: calc(100dvh - 76px);
+  min-height: 0;
+  display: grid;
+  grid-template-rows: 36px 150px auto minmax(0, 1fr);
+  gap: 8px;
+  padding: 4px 22px 0;
+  overflow: hidden;
+}
+
+#screen-match .match-topbar {
+  min-height: 36px;
+  height: 36px;
+  padding: 0;
+  display: flex;
+  justify-content: center;
+  border-radius: 0;
+}
+
+#screen-match .scoreboard {
+  min-height: 150px;
+  height: 150px;
+  border-radius: 12px;
+}
+
+#screen-match .timer-controls {
+  padding: 0;
+}
+
+#screen-match > .card {
+  min-height: 0;
+  margin: 0;
+  padding: 0 12px;
+  overflow: hidden;
+}
+
+#screen-match #scorer-list {
+  height: 100%;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  padding-bottom: 12px;
+}
+
+#screen-match .opponent-dock {
+  position: fixed;
+  z-index: 20;
+  left: 50%;
+  bottom: 0;
+  width: min(100%, 680px);
+  min-height: calc(68px + env(safe-area-inset-bottom));
+  padding: 8px 14px calc(8px + env(safe-area-inset-bottom));
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr) auto 42px 42px;
+  align-items: center;
+  gap: 8px;
+  transform: translateX(-50%);
+  background: #eef3f5;
+  border-top: 3px solid var(--red);
+}
+
+#screen-match .opponent-reverse-button {
+  color: var(--red);
+  border: 1px solid #dedede;
+  border-radius: 10px;
+  font-size: 25px;
+}
+
+#screen-match .dock-goal-button:not(.opponent-reverse-button) {
+  width: 42px;
+  height: 42px;
+  color: var(--red);
+  background: #fff;
+  border: 1px solid #dedede;
+  border-radius: 10px;
+  font-size: 24px;
+}
+
+#screen-match .opponent-dock-count {
+  min-width: 24px;
+  color: var(--ink);
+  font-size: 16px;
+}
+
+#screen-match {
+  padding-bottom: 0;
+}
+
