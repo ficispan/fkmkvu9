@@ -1050,3 +1050,140 @@ main {
   display: none;
 }
 
+/* Screen 3: kompaktnejšie skóre, viac priestoru pre hráčov */
+#screen-match.active {
+  grid-template-rows: 150px 42px minmax(0, 1fr);
+  gap: 6px;
+  padding: 0 8px 0;
+}
+
+#screen-match .scoreboard {
+  min-height: 150px;
+  height: 150px;
+  padding: 10px 8px;
+}
+
+/* Názvy oboch tímov zarovnané na jednu úroveň.
+   Tréner sa zobrazuje pod názvom Karlovky. */
+#screen-match .scoreboard {
+  align-items: start;
+}
+
+#screen-match .team {
+  padding-top: 42px;
+}
+
+#screen-match .team-coach {
+  margin-top: 5px;
+  font-size: 11px;
+}
+
+#screen-match .team-coach-placeholder {
+  display: none;
+}
+
+/* Časomiera a reverz dovnútra červenej sekcie */
+#screen-match.active {
+  grid-template-rows: 198px minmax(0, 1fr);
+}
+
+#screen-match .scoreboard {
+  position: relative;
+  height: 198px;
+}
+
+#screen-match .match-toolbar {
+  position: absolute;
+  inset: auto 12px 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 38px;
+}
+
+#screen-match .match-clock-button {
+  width: 42px;
+  min-width: 42px;
+  min-height: 36px;
+  font-size: 20px;
+}
+
+#screen-match .match-timer {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  color: #fff;
+  font-size: 17px;
+}
+
+#screen-match .team-reverse-button {
+  width: 40px;
+  height: 36px;
+  color: #fff;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.7);
+}
+
+/* Vyššie scoreboard bez zväčšenia bielej medzery:
+   toolbar presunieme vizuálne do scoreboardu. */
+#screen-match .scoreboard {
+  margin-bottom: -42px;
+  z-index: 1;
+}
+
+#screen-match .match-toolbar {
+  z-index: 2;
+  pointer-events: none;
+}
+
+#screen-match .match-toolbar button {
+  pointer-events: auto;
+}
+
+/* Zoznam širší a odsadený rovnako ako scoreboard */
+#screen-match > .scorer-card {
+  width: 100%;
+  padding: 0 4px;
+  border-radius: 14px 14px 0 0;
+}
+
+#screen-match .scorer-row {
+  grid-template-columns: minmax(0, 1fr) 34px 46px 46px;
+  gap: 10px;
+  padding: 0 8px;
+}
+
+#screen-match .scorer-count {
+  margin-right: 4px;
+}
+
+/* Spodný panel: rovnaká šírka ako zoznam, s malým odstupom od spodného okraja */
+#screen-match .opponent-dock {
+  bottom: calc(8px + env(safe-area-inset-bottom));
+  width: calc(min(100%, 680px) - 16px);
+  min-height: 66px;
+  padding: 8px 12px;
+  border: 1px solid #e1e6e8;
+  border-top: 3px solid var(--red);
+  border-radius: 14px;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.12);
+  background: #f5f8f9;
+}
+
+#screen-match .opponent-dock-name {
+  font-size: 15px;
+  font-weight: 650;
+}
+
+#screen-match .opponent-dock-count {
+  margin-right: 4px;
+  font-size: 17px;
+}
+
+#screen-match .opponent-dock .dock-goal-button {
+  width: 42px;
+  height: 42px;
+  font-size: 24px;
+}
+
+
