@@ -78,62 +78,71 @@
 </section>
 
 <section class="screen" id="screen-match" aria-labelledby="match-title" hidden>
-<div class="match-topbar">
-  <div class="timer-wrap">
-    <span class="timer-label">ČAS ZÁPASU</span>
-    <strong id="timer-display">00:00</strong>
+  <div class="match-topbar">
+    <span id="match-date" class="match-date"></span>
   </div>
-</div>
 
-<div class="scoreboard">
-<div class="team-name">FKM Karlova Ves</div>
-<div class="score">
-<span id="home-score">0</span>
-<span class="score-dash">:</span>
-<span id="away-score">0</span>
-</div>
-<div class="team-name" id="away-team-name">Súper</div>
-</div>
+  <div class="scoreboard">
+    <div class="team">
+      <div class="team-name" id="home-team-name">FKM Karlova Ves</div>
+      <div class="team-coach" id="home-coach"></div>
+    </div>
 
-<div class="timer-controls">
-<button class="button primary" id="timer-toggle" type="button">Spustiť stopky</button>
-<button class="button secondary" id="timer-reset" type="button">Vynulovať čas</button>
-<button class="button secondary" id="score-reset" type="button">Vynulovať góly</button>
-</div>
+    <div class="score">
+      <span id="home-score">0</span>
+      <span class="score-dash">:</span>
+      <span id="away-score">0</span>
+    </div>
 
-<div class="card">
-<div id="scorer-list" class="scorer-list"></div>
-</div>
+    <div class="team">
+      <div class="team-name" id="away-team-name">Súper</div>
+    </div>
+  </div>
 
-<div class="opponent-dock">
-  <button
-    class="dock-goal-button opponent-reverse-button"
-    id="reverse-teams"
-    type="button"
-    aria-label="Vymeniť domáci a hosťujúci tím"
-    title="Vymeniť tímy"
-  >⇄</button>
+  <div class="match-toolbar">
+    <button
+      class="button secondary match-clock-button"
+      id="timer-toggle"
+      type="button"
+      aria-label="Spustiť čas"
+    >Čas</button>
 
-  <span class="opponent-dock-name" id="opponent-dock-name">Súper</span>
-  <span class="opponent-dock-count" id="opponent-goal-count">0</span>
+    <strong id="timer-display" class="match-timer">00:00</strong>
 
-  <button
-    class="dock-goal-button"
-    id="opponent-goal-add"
-    type="button"
-    aria-label="Pridať gól súperovi"
-  >+</button>
+    <button
+      class="team-reverse-button"
+      id="reverse-teams"
+      type="button"
+      aria-label="Vymeniť tímy iba v zobrazení skóre"
+      title="Vymeniť tímy v skóre"
+    >⇄</button>
+  </div>
 
-  <button
-    class="dock-goal-button"
-    id="opponent-goal-remove"
-    type="button"
-    aria-label="Odobrať gól súperovi"
-  >−</button>
-</div>
+  <div class="card scorer-card">
+    <div id="scorer-list" class="scorer-list"></div>
+  </div>
 
+  <div class="opponent-dock">
+    <span class="opponent-dock-name" id="opponent-dock-name">Súper</span>
+    <span class="opponent-dock-count" id="opponent-goal-count">0</span>
 
+    <button
+      class="dock-goal-button"
+      id="opponent-goal-add"
+      type="button"
+      aria-label="Pridať gól súperovi"
+    >+</button>
+
+    <button
+      class="dock-goal-button"
+      id="opponent-goal-remove"
+      type="button"
+      aria-label="Odobrať gól súperovi"
+    >−</button>
+  </div>
 </section>
+
+  
 
 <section class="screen" id="screen-output" aria-labelledby="output-title" hidden>
 <div class="screen-heading output-heading">
