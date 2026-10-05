@@ -201,6 +201,10 @@ function formatTime(seconds) {
   return `${String(minutes).padStart(2, "0")}:${String(remainder).padStart(2, "0")}`;
 }
 
+function formatMatchDate(date = new Date()) {
+  return `${date.getDate()}.${date.getMonth() + 1}.${date.getFullYear()}`;
+}
+
 function updateTimerDisplay() {
   const display = $("#timer-display");
   if (display) display.textContent = formatTime(calculateElapsed());
@@ -280,26 +284,37 @@ function makeGoalRow(list, name, count, onAdd, onRemove) {
 }
 
 function renderMatch() {
-  const opponent = state.opponent || "Súper";
+    const opponent = state.opponent || "Súper";
   const ownGoalName = `${opponent} vl.`;
+  const karlovkaGoals = totalGoals(state.homeGoals) + state.ownGoals;
+  const opponentGoals = state.awayGoals.length;
+
+  $("#match-date").textContent = formatMatchDate();
+
   const homeName = state.teamsReversed ? opponent : "FKM Karlova Ves";
   const awayName = state.teamsReversed ? "FKM Karlova Ves" : opponent;
-  const homeGoals = state.teamsReversed ? state.awayGoals.length : totalGoals(state.homeGoals) + state.ownGoals;
-  const awayGoals = state.teamsReversed ? totalGoals(state.homeGoals) + state.ownGoals : state.awayGoals.length;
+  const displayHomeGoals = state.teamsReversed ? opponentGoals : karlovkaGoals;
+  const displayAwayGoals = state.teamsReversed ? karlovkaGoals : opponentGoals;
 
-  $("#screen-match .scoreboard .team-name:first-child").textContent = homeName;
+  $("#home-team-name").textContent = homeName;
   $("#away-team-name").textContent = awayName;
-  $("#opponent-dock-name").textContent = awayName;
-  $("#home-score").textContent = String(homeGoals);
-  $("#away-score").textContent = String(awayGoals);
-  $("#opponent-goal-count").textContent = String(awayGoals);
+  $("#home-score").textContent = String(displayHomeGoals);
+  $("#away-score").textContent = String(displayAwayGoals);
 
+  // Tréner sa zobrazí iba pri dvoch tímoch Karlovky.
+  const coach = state.squads === 2 ? state.coach : "";
+  $("#home-coach").textContent = coach ? `Tréner: ${coach}` : "";
+  $("#home-coach").hidden = !coach;
 
-  $("#timer-toggle").textContent = state.timerRunning
-    ? "Pozastaviť stopky"
-    : state.elapsedSeconds > 0
-      ? "Pokračovať"
-      : "Spustiť stopky";
+  // Reverz nikdy nemení spodný panel súpera.
+  $("#opponent-dock-name").textContent = opponent;
+  $("#opponent-goal-count").textContent = String(opponentGoals);
+
+  $("#timer-toggle").setAttribute(
+    "aria-label",
+    state.timerRunning ? "Zastaviť a vynulovať čas" : "Spustiť čas"
+  );
+
 
   updateTimerDisplay();
 
@@ -699,30 +714,32 @@ function bindEvents() {
   });
 
   $("#timer-toggle")?.addEventListener("click", () => {
-    if (state.timerRunning) pauseTimer();
+    if (state.timerRunning) resetTimer();
     else startTimer();
-  });
-
-  $("#timer-reset")?.addEventListener("click", resetTimer);
-
-  $("#score-reset")?.addEventListener("click", () => {
-    if (!window.confirm("Naozaj chceš vynulovať všetky góly?")) return;
-
-    state.homeGoals = Object.fromEntries(
-      state.selectedPlayers.map((player) => [player, 0])
-    );
-    state.awayGoals = [];
-    state.ownGoals = 0;
-
-    saveState();
-    renderMatch();
   });
 
   $("#reverse-teams")?.addEventListener("click", () => {
     state.teamsReversed = !state.teamsReversed;
     saveState();
-    renderMatch();
+
+    const opponent = state.opponent || "Súper";
+    const karlovkaGoals = totalGoals(state.homeGoals) + state.ownGoals;
+    const opponentGoals = state.awayGoals.length;
+
+    $("#home-team-name").textContent = state.teamsReversed
+      ? opponent
+      : "FKM Karlova Ves";
+    $("#away-team-name").textContent = state.teamsReversed
+      ? "FKM Karlova Ves"
+      : opponent;
+    $("#home-score").textContent = String(
+      state.teamsReversed ? opponentGoals : karlovkaGoals
+    );
+    $("#away-score").textContent = String(
+      state.teamsReversed ? karlovkaGoals : opponentGoals
+    );
   });
+
   
   $("#opponent-goal-add")?.addEventListener("click", () => {
     state.awayGoals.push({
