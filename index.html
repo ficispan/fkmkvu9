@@ -79,12 +79,10 @@
 
 <section class="screen" id="screen-match" aria-labelledby="match-title" hidden>
 <div class="match-topbar">
-<button class="icon-button" id="back-to-lineup" type="button" aria-label="Späť na nomináciu">‹</button>
-<div class="timer-wrap">
-<span class="timer-label">ČAS ZÁPASU</span>
-<strong id="timer-display">00:00</strong>
-</div>
-<button class="button small-button light-button" id="go-to-output" type="button">Výstup</button>
+  <div class="timer-wrap">
+    <span class="timer-label">ČAS ZÁPASU</span>
+    <strong id="timer-display">00:00</strong>
+  </div>
 </div>
 
 <div class="scoreboard">
@@ -104,41 +102,36 @@
 </div>
 
 <div class="card">
-<div class="section-title-row">
-<h2>Góly FKM Karlova Ves</h2>
-<span class="muted small-text">Tlačidlom + pridáš gól</span>
-</div>
 <div id="scorer-list" class="scorer-list"></div>
 </div>
 
 <div class="opponent-dock">
-          <label for="opponent-scorer" id="opponent-scorer-label"></label>
-        
-          <input
-            id="opponent-scorer"
-            type="text"
-            placeholder="Zadaj strelca súpera"
-            maxlength="40"
-            aria-label="Meno strelca gólu súpera"
-          >
-        
-          <button
-            class="dock-goal-button"
-            id="opponent-goal-add"
-            type="button"
-            aria-label="Pridať gól súperovi"
-          >＋</button>
-        
-          <button
-            class="dock-goal-button"
-            id="opponent-goal-remove"
-            type="button"
-            aria-label="Odobrať gól súperovi"
-          >−</button>
-          <span class="opponent-dock-name" id="opponent-dock-name">Súper</span>
-          <span class="opponent-dock-count" id="opponent-goal-count">0</span>
+  <button
+    class="dock-goal-button opponent-reverse-button"
+    id="reverse-teams"
+    type="button"
+    aria-label="Vymeniť domáci a hosťujúci tím"
+    title="Vymeniť tímy"
+  >⇄</button>
 
+  <span class="opponent-dock-name" id="opponent-dock-name">Súper</span>
+  <span class="opponent-dock-count" id="opponent-goal-count">0</span>
+
+  <button
+    class="dock-goal-button"
+    id="opponent-goal-add"
+    type="button"
+    aria-label="Pridať gól súperovi"
+  >+</button>
+
+  <button
+    class="dock-goal-button"
+    id="opponent-goal-remove"
+    type="button"
+    aria-label="Odobrať gól súperovi"
+  >−</button>
 </div>
+
 
 </section>
 
