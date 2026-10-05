@@ -891,37 +891,88 @@ main {
   border-radius: 8px;
 }
 
-/* Screen 3: hlavička, skóre a panel súpera zostávajú ukotvené. */
+/* Screen 3: hlavička ostáva hore, scrolluje iba zoznam strelcov. */
 #screen-match.active {
+  height: calc(100vh - 76px);
   height: calc(100dvh - 76px);
   min-height: 0;
   display: grid;
-  grid-template-rows: 36px 150px auto minmax(0, 1fr);
-  gap: 8px;
-  padding: 4px 22px 0;
+  grid-template-rows: 12px 128px 38px minmax(0, 1fr);
+  gap: 6px;
+  padding: 2px 22px 0;
   overflow: hidden;
 }
 
 #screen-match .match-topbar {
-  min-height: 36px;
-  height: 36px;
+  min-height: 12px;
+  height: 12px;
   padding: 0;
-  display: flex;
-  justify-content: center;
-  border-radius: 0;
+  background: transparent;
 }
 
 #screen-match .scoreboard {
-  min-height: 150px;
-  height: 150px;
+  min-height: 128px;
+  height: 128px;
+  padding: 8px;
   border-radius: 12px;
 }
 
-#screen-match .timer-controls {
-  padding: 0;
+#screen-match .scoreboard .team-name {
+  font-size: clamp(13px, 3.8vw, 17px);
 }
 
-#screen-match > .card {
+#screen-match .score {
+  font-size: clamp(25px, 7vw, 36px);
+}
+
+#screen-match .team-coach {
+  margin-top: 3px;
+  font-size: 11px;
+  opacity: 0.85;
+}
+
+#screen-match .team-coach[hidden] {
+  display: none !important;
+}
+
+#screen-match .match-toolbar {
+  min-height: 38px;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+}
+
+#screen-match .match-clock-button {
+  justify-self: start;
+  min-width: 62px;
+  min-height: 34px;
+  padding: 0 12px;
+  color: var(--red);
+  background: #fff;
+  border-color: #ddd;
+}
+
+#screen-match .match-timer {
+  font-size: 18px;
+  font-variant-numeric: tabular-nums;
+}
+
+#screen-match .team-reverse-button {
+  justify-self: end;
+  width: 38px;
+  height: 34px;
+  color: var(--red);
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 9px;
+  font-size: 22px;
+}
+
+#screen-match .timer-controls {
+  display: none;
+}
+
+#screen-match > .scorer-card {
   min-height: 0;
   margin: 0;
   padding: 0 12px;
@@ -931,9 +982,14 @@ main {
 #screen-match #scorer-list {
   height: 100%;
   min-height: 0;
+  margin-top: 0;
+  padding-bottom: 12px;
   overflow-y: auto;
   overscroll-behavior-y: contain;
-  padding-bottom: 12px;
+}
+
+#screen-match #scorer-list .scorer-row:first-child {
+  border-top: 0;
 }
 
 #screen-match .opponent-dock {
@@ -942,10 +998,10 @@ main {
   left: 50%;
   bottom: 0;
   width: min(100%, 680px);
-  min-height: calc(68px + env(safe-area-inset-bottom));
-  padding: 8px 14px calc(8px + env(safe-area-inset-bottom));
+  min-height: calc(60px + env(safe-area-inset-bottom));
+  padding: 6px 14px calc(6px + env(safe-area-inset-bottom));
   display: grid;
-  grid-template-columns: 42px minmax(0, 1fr) auto 42px 42px;
+  grid-template-columns: minmax(0, 1fr) auto 40px 40px;
   align-items: center;
   gap: 8px;
   transform: translateX(-50%);
@@ -953,30 +1009,25 @@ main {
   border-top: 3px solid var(--red);
 }
 
-#screen-match .opponent-reverse-button {
-  color: var(--red);
-  border: 1px solid #dedede;
-  border-radius: 10px;
-  font-size: 25px;
-}
-
-#screen-match .dock-goal-button:not(.opponent-reverse-button) {
-  width: 42px;
-  height: 42px;
-  color: var(--red);
-  background: #fff;
-  border: 1px solid #dedede;
-  border-radius: 10px;
-  font-size: 24px;
+#screen-match .opponent-dock-name {
+  font-size: 14px;
 }
 
 #screen-match .opponent-dock-count {
-  min-width: 24px;
-  color: var(--ink);
-  font-size: 16px;
+  min-width: 22px;
+  font-size: 15px;
 }
 
-#screen-match {
-  padding-bottom: 0;
+#screen-match .opponent-dock .dock-goal-button {
+  width: 40px;
+  height: 40px;
+  color: var(--red);
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 9px;
+  font-size: 23px;
 }
 
+#screen-match:not(.active) .opponent-dock {
+  display: none;
+}
