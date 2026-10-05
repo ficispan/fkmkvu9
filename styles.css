@@ -845,9 +845,13 @@ main {
   margin-top: auto;
 }
 
-.app-shell:has(#screen-setup.active) #lineup-back,
-.app-shell:has(#screen-setup.active) #lineup-next {
-  display: none;
+.app-shell:has(#screen-setup.active) .header-nav-button,
+.app-shell:has(#screen-output.active) #lineup-next {
+  display: none !important;
+}
+
+.app-shell:not(:has(#screen-setup.active)) .header-nav-button {
+  font-size: 50px;
 }
 
 #screen-setup.active ~ .app-footer {
