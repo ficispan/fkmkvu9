@@ -342,6 +342,7 @@ select:focus {
   text-align: center;
   color: #fff;
   background: var(--red);
+  position: relative;
 }
 
 .team-name {
