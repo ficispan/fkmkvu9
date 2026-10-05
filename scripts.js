@@ -42,7 +42,8 @@ const state = {
   elapsedSeconds: 0,
   timerRunning: false,
   lastTimerStart: null,
-  currentScreen: "setup"
+  currentScreen: "setup",
+  teamsReversed: false
 };
 
 let timerInterval = null;
@@ -281,12 +282,18 @@ function makeGoalRow(list, name, count, onAdd, onRemove) {
 function renderMatch() {
   const opponent = state.opponent || "Súper";
   const ownGoalName = `${opponent} vl.`;
+  const homeName = state.teamsReversed ? opponent : "FKM Karlova Ves";
+  const awayName = state.teamsReversed ? "FKM Karlova Ves" : opponent;
+  const homeGoals = state.teamsReversed ? state.awayGoals.length : totalGoals(state.homeGoals) + state.ownGoals;
+  const awayGoals = state.teamsReversed ? totalGoals(state.homeGoals) + state.ownGoals : state.awayGoals.length;
 
-  $("#away-team-name").textContent = opponent;
-  $("#opponent-dock-name").textContent = opponent;
-  $("#home-score").textContent = String(totalGoals(state.homeGoals) + state.ownGoals);
-  $("#away-score").textContent = String(state.awayGoals.length);
-  $("#opponent-goal-count").textContent = String(state.awayGoals.length);
+  $("#screen-match .scoreboard .team-name:first-child").textContent = homeName;
+  $("#away-team-name").textContent = awayName;
+  $("#opponent-dock-name").textContent = awayName;
+  $("#home-score").textContent = String(homeGoals);
+  $("#away-score").textContent = String(awayGoals);
+  $("#opponent-goal-count").textContent = String(awayGoals);
+
 
   $("#timer-toggle").textContent = state.timerRunning
     ? "Pozastaviť stopky"
@@ -711,6 +718,12 @@ function bindEvents() {
     renderMatch();
   });
 
+  $("#reverse-teams")?.addEventListener("click", () => {
+    state.teamsReversed = !state.teamsReversed;
+    saveState();
+    renderMatch();
+  });
+  
   $("#opponent-goal-add")?.addEventListener("click", () => {
     state.awayGoals.push({
       scorer: "Súper",
