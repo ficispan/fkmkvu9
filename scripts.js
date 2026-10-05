@@ -284,12 +284,10 @@ function makeGoalRow(list, name, count, onAdd, onRemove) {
 }
 
 function renderMatch() {
-    const opponent = state.opponent || "Súper";
+  const opponent = state.opponent || "Súper";
   const ownGoalName = `${opponent} vl.`;
   const karlovkaGoals = totalGoals(state.homeGoals) + state.ownGoals;
   const opponentGoals = state.awayGoals.length;
-
-  $("#match-date").textContent = formatMatchDate();
 
   const homeName = state.teamsReversed ? opponent : "FKM Karlova Ves";
   const awayName = state.teamsReversed ? "FKM Karlova Ves" : opponent;
@@ -301,14 +299,23 @@ function renderMatch() {
   $("#home-score").textContent = String(displayHomeGoals);
   $("#away-score").textContent = String(displayAwayGoals);
 
-  // Tréner sa zobrazí iba pri dvoch tímoch Karlovky.
   const coach = state.squads === 2 ? state.coach : "";
-  $("#home-coach").textContent = coach ? `Tréner: ${coach}` : "";
-  $("#home-coach").hidden = !coach;
+  const homeCoachElement = $("#home-coach");
+  const awayCoachElement = $("#screen-match .team-coach-placeholder");
 
-  // Reverz nikdy nemení spodný panel súpera.
+  homeCoachElement.textContent =
+    !state.teamsReversed && coach ? `Tréner: ${coach}` : "";
+  homeCoachElement.hidden = state.teamsReversed || !coach;
+
+  awayCoachElement.textContent =
+    state.teamsReversed && coach ? `Tréner: ${coach}` : "";
+  awayCoachElement.hidden = !state.teamsReversed || !coach;
+
+
+  // Reverz nemení označenie ani počet gólov v spodnom paneli.
   $("#opponent-dock-name").textContent = opponent;
   $("#opponent-goal-count").textContent = String(opponentGoals);
+
 
   $("#timer-toggle").setAttribute(
     "aria-label",
@@ -718,9 +725,8 @@ function bindEvents() {
     else startTimer();
   });
 
-  $("#reverse-teams")?.addEventListener("click", () => {
+    $("#reverse-teams")?.addEventListener("click", () => {
     state.teamsReversed = !state.teamsReversed;
-    saveState();
 
     const opponent = state.opponent || "Súper";
     const karlovkaGoals = totalGoals(state.homeGoals) + state.ownGoals;
@@ -732,13 +738,29 @@ function bindEvents() {
     $("#away-team-name").textContent = state.teamsReversed
       ? "FKM Karlova Ves"
       : opponent;
+
     $("#home-score").textContent = String(
       state.teamsReversed ? opponentGoals : karlovkaGoals
     );
     $("#away-score").textContent = String(
       state.teamsReversed ? karlovkaGoals : opponentGoals
     );
+
+    const coach = state.squads === 2 ? state.coach : "";
+    $("#home-coach").textContent = state.teamsReversed || !coach
+      ? ""
+      : `Tréner: ${coach}`;
+    $("#home-coach").hidden = state.teamsReversed || !coach;
+
+    const awayCoach = $("#screen-match .team-coach-placeholder");
+    awayCoach.textContent = state.teamsReversed && coach
+      ? `Tréner: ${coach}`
+      : "";
+    awayCoach.hidden = !state.teamsReversed || !coach;
+
+    saveState();
   });
+
 
   
   $("#opponent-goal-add")?.addEventListener("click", () => {
