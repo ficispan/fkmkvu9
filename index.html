@@ -78,10 +78,6 @@
 </section>
 
 <section class="screen" id="screen-match" aria-labelledby="match-title" hidden>
-  <div class="match-topbar">
-    <span id="match-date" class="match-date"></span>
-  </div>
-
   <div class="scoreboard">
     <div class="team">
       <div class="team-name" id="home-team-name">FKM Karlova Ves</div>
@@ -96,6 +92,7 @@
 
     <div class="team">
       <div class="team-name" id="away-team-name">Súper</div>
+      <div class="team-coach team-coach-placeholder" aria-hidden="true"></div>
     </div>
   </div>
 
@@ -104,8 +101,8 @@
       class="button secondary match-clock-button"
       id="timer-toggle"
       type="button"
-      aria-label="Spustiť čas"
-    >Čas</button>
+      aria-label="Spustiť časomieru"
+    >⏱️</button>
 
     <strong id="timer-display" class="match-timer">00:00</strong>
 
@@ -113,8 +110,8 @@
       class="team-reverse-button"
       id="reverse-teams"
       type="button"
-      aria-label="Vymeniť tímy iba v zobrazení skóre"
-      title="Vymeniť tímy v skóre"
+      aria-label="Prehodiť tímy v skóre"
+      title="Prehodiť tímy v skóre"
     >⇄</button>
   </div>
 
@@ -141,6 +138,7 @@
     >−</button>
   </div>
 </section>
+
 
   
 
