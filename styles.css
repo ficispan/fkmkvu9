@@ -184,6 +184,12 @@ select {
   outline: none;
 }
 
+#squads,
+#coach {
+  padding-left: 18px;
+}
+
+
 input:focus,
 select:focus {
   border-color: var(--red);
