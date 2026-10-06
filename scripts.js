@@ -388,9 +388,18 @@ function getGoalsSummary() {
   }
 
   return [...scorers.entries()]
-    .sort(([nameA], [nameB]) => nameA.localeCompare(nameB, "sk"))
+    .sort(([nameA, goalsA], [nameB, goalsB]) => {
+      if (goalsA !== goalsB) return goalsB - goalsA;
+
+      const isOwnGoalA = nameA === ownGoalName;
+      const isOwnGoalB = nameB === ownGoalName;
+
+      if (isOwnGoalA !== isOwnGoalB) return isOwnGoalA ? 1 : -1;
+      return nameA.localeCompare(nameB, "sk");
+    })
     .map(([name, count]) => count === 1 ? name : `${name} ${count}`);
 }
+
 
 
 function shirtSvg() {
@@ -403,11 +412,15 @@ function shirtSvg() {
 }
 
 function renderOutput() {
-  $("#poster-date").textContent = new Intl.DateTimeFormat("sk-SK", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric"
-  }).format(new Date());
+$("#poster-date").textContent = new Intl.DateTimeFormat("sk-SK", {
+  day: "2-digit",
+  month: "2-digit",
+  year: "numeric"
+}).format(new Date());
+
+$("#poster-date").style.fontSize = "16px";
+$("#poster-date").style.textAlign = "center";
+
 
   $("#poster-coach").textContent =
     state.squads === 2 && state.coach
@@ -476,46 +489,69 @@ async function makePosterBlob() {
   context.fillStyle = "#fff";
   context.fillRect(0, 0, width, height);
 
+  // Smaller red header/scoreboard area.
+  const headerHeight = Math.min(150, Math.round(height * 0.24));
   context.fillStyle = red;
-  context.fillRect(0, 0, width, 190);
+  context.fillRect(0, 0, width, headerHeight);
+
+  // Draw the actual club crest from the page header.
+  const crest = document.querySelector(".brand-logo");
+  if (crest?.complete && crest.naturalWidth > 0) {
+    context.save();
+    context.beginPath();
+    context.arc(42, 38, 23, 0, Math.PI * 2);
+    context.clip();
+    context.drawImage(crest, 19, 15, 46, 46);
+    context.restore();
+  }
 
   context.fillStyle = "#fff";
+  context.textAlign = "center";
+  context.font = "700 16px Arial";
+  context.fillText($("#poster-date").textContent, width / 2, 27);
+
   context.textAlign = "left";
-  context.font = "800 15px Arial";
-  context.fillText("FKM", 20, 41);
   context.font = "12px Arial";
-  context.fillText($("#poster-date").textContent, 76, 31);
-  context.fillText($("#poster-coach").textContent, 76, 50);
+  context.fillText($("#poster-coach").textContent, 76, 52);
+
+  // Compact, centered team names and score.
+  const centerY = Math.round(headerHeight * 0.61);
+  const sideCenterLeft = width * 0.25;
+  const sideCenterRight = width * 0.75;
 
   context.textAlign = "center";
-  context.font = "700 14px Arial";
-  context.fillText("FKM Karlova Ves", width * 0.25, 96);
-  context.fillText($("#poster-opponent").textContent, width * 0.75, 96);
-  context.font = "800 43px Arial";
-  context.fillText($("#poster-home-score").textContent, width * 0.25, 154);
-  context.fillText(":", width * 0.5, 151);
-  context.fillText($("#poster-away-score").textContent, width * 0.75, 154);
+  context.font = "700 15px Arial";
+  context.fillText("FKM Karlova Ves", sideCenterLeft, centerY);
 
-  let y = 190;
+  const opponent = $("#poster-opponent").textContent;
+  context.fillText(opponent, sideCenterRight, centerY);
+
+  context.font = "800 36px Arial";
+  context.fillText($("#poster-home-score").textContent, width * 0.40, headerHeight - 18);
+  context.fillText(":", width * 0.50, headerHeight - 18);
+  context.fillText($("#poster-away-score").textContent, width * 0.60, headerHeight - 18);
+
+  let y = headerHeight;
   context.textAlign = "left";
   context.fillStyle = red;
   context.font = "800 13px Arial";
-  context.fillText("GÓLY", 18, y + 23);
+  context.fillText("STRELCI", 18, y + 23);
 
   context.fillStyle = "#242424";
   context.font = "13px Arial";
 
-  const goalLines = wrapCanvasText(
+  const scorerLines = wrapCanvasText(
     context,
     $("#poster-goals-text").textContent,
     width - 36
   );
 
-  goalLines.forEach((line, index) => {
+  scorerLines.forEach((line, index) => {
     context.fillText(line, 18, y + 47 + index * 18);
   });
 
-  y += 66 + Math.max(0, goalLines.length - 1) * 18;
+  y += 66 + Math.max(0, scorerLines.length - 1) * 18;
+
   context.fillStyle = "#f8f8f8";
   context.fillRect(0, y, width, height - y);
 
@@ -557,6 +593,7 @@ async function makePosterBlob() {
   context.font = "800 9px Arial";
   context.fillText("FKM KARLOVA VES", width / 2, height - 12);
 
+  
   return new Promise((resolve, reject) => {
     canvas.toBlob((blob) => {
       if (blob) resolve(blob);
