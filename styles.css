@@ -1066,3 +1066,40 @@ main {
   }
 }
 
+/* Screen 3 spacing and scoreboard refinements */
+main:has(#screen-match.active) {
+  padding-top: 8px;
+}
+
+#screen-match.active {
+  height: calc(100dvh - 84px);
+  padding-top: 0;
+  gap: 8px;
+}
+
+#screen-match .scoreboard {
+  height: 158px;
+  min-height: 158px;
+  padding: 14px 12px 50px;
+}
+
+#screen-match .match-teams-row {
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  gap: 4px;
+}
+
+#screen-match .team-name {
+  font-size: clamp(13px, 3.6vw, 17px);
+  line-height: 1.15;
+}
+
+#screen-match .team-coach {
+  font-size: clamp(10px, 2.8vw, 12px);
+  white-space: nowrap;
+}
+
+#screen-match .score {
+  gap: 3px;
+  padding: 0 2px;
+  font-size: clamp(25px, 7vw, 36px);
+}
