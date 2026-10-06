@@ -143,13 +143,6 @@ function showScreen(screenName) {
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
-function normalizeText(value) {
-  return String(value || "")
-    .normalize("NFD")
-    .replace(/\p{Diacritic}/gu, "")
-    .toLocaleLowerCase("sk");
-}
-
 function sortedPlayers() {
   return [...DEFAULT_PLAYERS].sort((a, b) => a.localeCompare(b, "sk"));
 }
@@ -219,10 +212,6 @@ function formatTime(seconds) {
   const remainder = safeSeconds % 60;
 
   return `${String(minutes).padStart(2, "0")}:${String(remainder).padStart(2, "0")}`;
-}
-
-function formatMatchDate(date = new Date()) {
-  return `${date.getDate()}.${date.getMonth() + 1}.${date.getFullYear()}`;
 }
 
 function updateTimerDisplay() {
@@ -339,8 +328,7 @@ function renderMatch() {
   $("#opponent-goal-count").textContent = String(opponentGoals);
   $("#opponent-goal-remove").disabled = opponentGoals === 0;
 
-  const timerToggle = $("#timer-toggle");
-  timerToggle.setAttribute(
+  $("#timer-toggle").setAttribute(
     "aria-label",
     state.timerRunning ? "Zastaviť a vynulovať čas" : "Spustiť čas"
   );
@@ -393,7 +381,7 @@ function renderMatch() {
 }
 
 /* Screen 4 scorer summary:
-   goals descending, then alphabetical; own goals after regular scorers on ties. */
+   goals descending, then alphabetically; own goals after regular scorers on ties. */
 function getGoalsSummary() {
   const scorers = new Map();
 
@@ -431,9 +419,12 @@ function getGoalsSummary() {
 
 function shirtSvg() {
   return `
-    <svg class="shirt-icon" viewBox="0 0 64 58" aria-hidden="true">
-      <path fill="currentColor" d="M18 5 27 1c2 5 8 5 10 0l9 4 15 8-7 13-8-4v34H18V22l-8 4-7-13z"/>
-      <path fill="#fff" opacity=".9" d="M28 7h8l-4 7z"/>
+    <svg class="shirt-icon" viewBox="0 0 64 60" aria-hidden="true">
+      <path
+        fill="currentColor"
+        d="M22 4 32 0 42 4 58 13 51 29 44 25 44 60 20 60 20 25 13 29 6 13Z"
+      />
+      <path fill="#fff" d="M27 5 32 11 37 5 34 3 30 3Z"/>
     </svg>
   `;
 }
@@ -448,17 +439,18 @@ function renderOutput() {
   const coach =
     state.squads === 2 && state.coach ? `Tréner: ${state.coach}` : "";
 
-  const homeTeam = state.teamsReversed
-    ? state.opponent || "Súper"
-    : "FKM Karlova Ves";
+  const karlovkaName = "FKM Karlova Ves";
+  const opponentName = state.opponent || "Súper";
 
-  const awayTeam = state.teamsReversed
-    ? "FKM Karlova Ves"
-    : state.opponent || "Súper";
+  $("#poster-home-team").textContent = state.teamsReversed
+    ? opponentName
+    : karlovkaName;
 
-  $("#poster-home-team").textContent = homeTeam;
-  $("#poster-away-team").textContent = awayTeam;
+  $("#poster-away-team").textContent = state.teamsReversed
+    ? karlovkaName
+    : opponentName;
 
+  // Coach belongs below Karlovka, including when teams are reversed.
   $("#poster-home-coach").textContent = state.teamsReversed ? "" : coach;
   $("#poster-away-coach").textContent = state.teamsReversed ? coach : "";
 
@@ -468,6 +460,7 @@ function renderOutput() {
   $("#poster-home-score").textContent = String(
     state.teamsReversed ? opponentGoals : karlovkaGoals
   );
+
   $("#poster-away-score").textContent = String(
     state.teamsReversed ? karlovkaGoals : opponentGoals
   );
@@ -506,35 +499,25 @@ function renderOutput() {
     });
 }
 
-function wrapCanvasText(context, text, maxWidth) {
-  const words = String(text).trim().split(/\s+/);
+function wrapScorersCanvas(context, scorers, maxWidth) {
+  if (!scorers.length) return ["Bez gólov."];
+
   const lines = [];
   let line = "";
 
-  words.forEach((word) => {
-    const candidate = line ? `${line} ${word}` : word;
+  scorers.forEach((scorer) => {
+    const candidate = line ? `${line}, ${scorer}` : scorer;
 
-    if (context.measureText(candidate).width > maxWidth && line) {
+    if (line && context.measureText(candidate).width > maxWidth) {
       lines.push(line);
-      line = word;
+      line = scorer;
     } else {
       line = candidate;
     }
   });
 
   if (line) lines.push(line);
-  return lines.length ? lines : [""];
-}
-
-function waitForImage(image) {
-  if (image.complete && image.naturalWidth > 0) {
-    return Promise.resolve();
-  }
-
-  return new Promise((resolve) => {
-    image.addEventListener("load", resolve, { once: true });
-    image.addEventListener("error", resolve, { once: true });
-  });
+  return lines;
 }
 
 async function makePosterBlob() {
@@ -559,6 +542,11 @@ async function makePosterBlob() {
       .getPropertyValue("--red")
       .trim() || "#c9282b";
 
+  const padding = 18;
+  const headerHeight = 52;
+  const scoreHeight = 142;
+  const redSectionHeight = headerHeight + scoreHeight;
+
   const homeTeam = $("#poster-home-team").textContent;
   const awayTeam = $("#poster-away-team").textContent;
   const homeCoach = $("#poster-home-coach").textContent;
@@ -567,129 +555,125 @@ async function makePosterBlob() {
   const awayScore = $("#poster-away-score").textContent;
   const date = $("#poster-date").textContent;
 
-  const scorers = getGoalsSummary();
-  const scorerLabels = scorers.map((scorer) => scorer.label);
-
+  const scorerLabels = getGoalsSummary().map((scorer) => scorer.label);
   const roster = [...state.selectedPlayers].sort((a, b) =>
     a.localeCompare(b, "sk")
   );
 
-  const headerHeight = 190;
-  const contentPadding = 18;
-
   context.fillStyle = "#fff";
   context.fillRect(0, 0, width, height);
 
-  /* Compact red match header; deliberately no club crest/logo. */
+  // Smaller red header/score area. No club logo in the output image.
   context.fillStyle = red;
-  context.fillRect(0, 0, width, headerHeight);
+  context.fillRect(0, 0, width, redSectionHeight);
 
   context.fillStyle = "#fff";
   context.textAlign = "center";
   context.textBaseline = "alphabetic";
-  context.font = "700 16px Arial";
-  context.fillText(date, width / 2, 30);
+  context.font = "700 17px Arial";
+  context.fillText(date, width / 2, 32);
 
-  const sideWidth = width * 0.32;
   const leftCenter = width * 0.25;
-  const centerX = width / 2;
   const rightCenter = width * 0.75;
+  const sideMaxWidth = width * 0.38;
 
   context.font = "700 15px Arial";
-  context.fillText(homeTeam, leftCenter, 76, sideWidth);
-  context.fillText(awayTeam, rightCenter, 76, sideWidth);
+  context.fillText(homeTeam, leftCenter, 78, sideMaxWidth);
+  context.fillText(awayTeam, rightCenter, 78, sideMaxWidth);
 
   if (homeCoach) {
-    context.font = "12px Arial";
-    context.fillText(homeCoach, leftCenter, 96, sideWidth);
+    context.font = "11px Arial";
+    context.fillText(homeCoach, leftCenter, 97, sideMaxWidth);
   }
 
   if (awayCoach) {
-    context.font = "12px Arial";
-    context.fillText(awayCoach, rightCenter, 96, sideWidth);
+    context.font = "11px Arial";
+    context.fillText(awayCoach, rightCenter, 97, sideMaxWidth);
   }
 
-  context.font = "800 38px Arial";
-  context.fillText(homeScore, width * 0.39, 151);
-  context.fillText(":", centerX, 151);
-  context.fillText(awayScore, width * 0.61, 151);
+  context.font = "800 36px Arial";
+  context.fillText(homeScore, width * 0.40, 158);
+  context.fillText(":", width * 0.50, 158);
+  context.fillText(awayScore, width * 0.60, 158);
 
-  /* Scorers: keep each name-and-count entry indivisible when wrapping. */
-  let y = headerHeight;
+  // Scorers section: break lines only between scorer entries.
+  let y = redSectionHeight;
   context.textAlign = "left";
   context.fillStyle = red;
   context.font = "800 13px Arial";
-  context.fillText("STRELCI", contentPadding, y + 24);
+  context.fillText("STRELCI", padding, y + 24);
 
   context.fillStyle = "#242424";
   context.font = "13px Arial";
 
-  const scorerLines = wrapCanvasText(
+  const scorerLines = wrapScorersCanvas(
     context,
-    scorerLabels.length ? scorerLabels.join(", ") : "Bez gólov.",
-    width - contentPadding * 2
+    scorerLabels,
+    width - padding * 2
   );
 
   scorerLines.forEach((line, index) => {
-    context.fillText(
-      line,
-      contentPadding,
-      y + 49 + index * 19,
-      width - contentPadding * 2
-    );
+    context.fillText(line, padding, y + 49 + index * 19);
   });
 
-  const scorerSectionHeight = 63 + Math.max(0, scorerLines.length - 1) * 19;
-  y += scorerSectionHeight;
+  y += 63 + Math.max(0, scorerLines.length - 1) * 19;
 
-  /* Centered lineup section. */
+  // Lineup section.
   context.fillStyle = "#f8f8f8";
   context.fillRect(0, y, width, height - y);
 
   context.fillStyle = red;
   context.font = "800 13px Arial";
   context.textAlign = "left";
-  context.fillText("NOMINÁCIA", contentPadding, y + 24);
+  context.fillText("NOMINÁCIA", padding, y + 24);
 
   const columns = 3;
-  const gridWidth = width - contentPadding * 2;
+  const gridWidth = width - padding * 2;
   const cellWidth = gridWidth / columns;
-  const rowHeight = 58;
   const lineupStartY = y + 42;
+  const rowHeight = 58;
+
+  // Proportional jersey silhouette, centered in each column.
+  const jerseyPath = new Path2D(
+    "M22 4 L32 0 L42 4 L58 13 L51 29 L44 25 L44 60 L20 60 L20 25 L13 29 L6 13 Z"
+  );
 
   roster.forEach((player, index) => {
     const column = index % columns;
     const row = Math.floor(index / columns);
-    const cellLeft = contentPadding + column * cellWidth;
-    const cellCenter = cellLeft + cellWidth / 2;
-    const playerY = lineupStartY + row * rowHeight;
+    const centerX = padding + column * cellWidth + cellWidth / 2;
+    const iconWidth = 28;
+    const iconHeight = 28;
+    const iconX = centerX - iconWidth / 2;
+    const iconY = lineupStartY + row * rowHeight;
 
-    /* Shirt icon centered in its equal-width column. */
-    const shirtWidth = 28;
-    const shirtHeight = 28;
-    const shirtX = cellCenter - shirtWidth / 2;
-    const shirtY = playerY;
-
+    context.save();
+    context.translate(iconX, iconY);
+    context.scale(iconWidth / 64, iconHeight / 60);
     context.fillStyle = red;
+    context.fill(jerseyPath);
+
+    // Small white collar detail.
+    context.fillStyle = "#fff";
     context.beginPath();
-    context.moveTo(shirtX + 8, shirtY + 4);
-    context.lineTo(shirtX + 13, shirtY);
-    context.lineTo(shirtX + 18, shirtY + 4);
-    context.lineTo(shirtX + 27, shirtY + 9);
-    context.lineTo(shirtX + 23, shirtY + 17);
-    context.lineTo(shirtX + 20, shirtY + 15);
-    context.lineTo(shirtX + 20, shirtY + shirtHeight);
-    context.lineTo(shirtX + 8, shirtY + shirtHeight);
-    context.lineTo(shirtX + 8, shirtY + 15);
-    context.lineTo(shirtX + 5, shirtY + 17);
-    context.lineTo(shirtX + 1, shirtY + 9);
+    context.moveTo(27, 4);
+    context.lineTo(32, 10);
+    context.lineTo(37, 4);
+    context.lineTo(34, 2);
+    context.lineTo(30, 2);
     context.closePath();
     context.fill();
+    context.restore();
 
     context.fillStyle = "#242424";
     context.textAlign = "center";
     context.font = "10px Arial";
-    context.fillText(player, cellCenter, playerY + 42, cellWidth - 8);
+    context.fillText(
+      player,
+      centerX,
+      iconY + 40,
+      Math.max(20, cellWidth - 8)
+    );
   });
 
   context.fillStyle = "#777";
@@ -710,8 +694,6 @@ async function makePosterBlob() {
 
 async function downloadPoster() {
   try {
-    await waitForImage(document.querySelector(".brand-logo"));
-
     const blob = await makePosterBlob();
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
@@ -735,8 +717,6 @@ async function downloadPoster() {
 
 async function sharePoster() {
   try {
-    await waitForImage(document.querySelector(".brand-logo"));
-
     const blob = await makePosterBlob();
     const file = new File([blob], "fkm-karlova-ves-zapas.png", {
       type: "image/png"
@@ -918,7 +898,7 @@ function bindEvents() {
   });
 }
 
-/* Reset to setup on every page load/refresh, as requested. */
+/* Reset to setup screen on every page load or refresh, as requested. */
 localStorage.removeItem(STORAGE_KEY);
 
 loadSavedState();
