@@ -1103,3 +1103,32 @@ main:has(#screen-match.active) {
   padding: 0 2px;
   font-size: clamp(25px, 7vw, 36px);
 }
+
+/* Screen 3: remove the gap under the header */
+main:has(#screen-match.active) {
+  padding-top: 0 !important;
+}
+
+#screen-match.active {
+  margin-top: 0 !important;
+  padding-top: 8px !important;
+}
+
+/* Center the complete team–score–team group */
+#screen-match .match-teams-row {
+  width: 100%;
+  display: flex !important;
+  justify-content: center;
+  align-items: flex-start;
+  gap: clamp(8px, 3vw, 24px);
+}
+
+#screen-match .match-teams-row > .team {
+  flex: 0 1 34%;
+  min-width: 0;
+}
+
+#screen-match .match-teams-row > .score {
+  flex: 0 0 auto;
+}
+
