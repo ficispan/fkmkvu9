@@ -4,7 +4,7 @@
   --ink: #242424;
   --muted: #747474;
   --line: #e7e7e7;
-  --paper: #fff;
+  --paper: #ffffff;
   --shadow: 0 12px 32px rgba(34, 22, 22, 0.08);
 
   font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
@@ -40,6 +40,7 @@ button {
   -webkit-tap-highlight-color: transparent;
 }
 
+/* App layout */
 .app-shell {
   width: min(100%, 680px);
   min-height: 100vh;
@@ -49,6 +50,11 @@ button {
   flex-direction: column;
   background: var(--paper);
   box-shadow: 0 0 40px rgba(0, 0, 0, 0.06);
+}
+
+main {
+  flex: 1 0 auto;
+  padding: 28px 22px 40px;
 }
 
 /* Header */
@@ -116,12 +122,7 @@ button {
   display: none !important;
 }
 
-/* Main and screens */
-main {
-  flex: 1 0 auto;
-  padding: 28px 22px 40px;
-}
-
+/* Screens and shared components */
 .screen {
   display: none;
 }
@@ -147,7 +148,6 @@ main {
   }
 }
 
-/* Headings and general components */
 .screen-heading {
   margin: 4px 0 22px;
 }
@@ -373,7 +373,7 @@ select:focus {
   flex: 1;
 }
 
-/* Screen 3: match layout */
+/* Match screen: scoreboard, player list, opponent controls */
 #screen-match.active {
   height: calc(100vh - 84px);
   height: calc(100dvh - 84px);
@@ -381,24 +381,24 @@ select:focus {
   margin: 0;
   padding: 8px 22px 12px;
   display: grid;
-  grid-template-rows: 158px minmax(0, 1fr) 58px;
+  grid-template-rows: 132px minmax(0, 1fr) 58px;
   gap: 8px;
   overflow: hidden;
 }
 
-/* Scoreboard */
+/* Compact scoreboard */
 #screen-match .scoreboard {
   position: relative;
   width: 100%;
-  height: 158px;
-  min-height: 158px;
-  padding: 14px 12px 50px;
+  height: 132px;
+  min-height: 132px;
+  padding: 14px 12px 8px;
   color: #fff;
   background: var(--red);
   border-radius: 14px;
 }
 
-/* Equal-width side columns keep the score centered in the red panel. */
+/* Equal side columns keep the score centered in the red panel */
 #screen-match .match-teams-row {
   position: absolute;
   top: 14px;
@@ -410,6 +410,18 @@ select:focus {
   grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   align-items: start;
   gap: 8px;
+}
+
+#screen-match .match-teams-row > .team:first-child {
+  justify-self: end;
+}
+
+#screen-match .match-teams-row > .team:last-child {
+  justify-self: start;
+}
+
+#screen-match .match-teams-row > .score {
+  justify-self: center;
 }
 
 #screen-match .team {
@@ -456,11 +468,11 @@ select:focus {
   font-size: 24px;
 }
 
-/* Stopwatch and team-reverse controls */
+/* Stopwatch and team-reverse buttons */
 #screen-match .match-toolbar {
   position: absolute;
   right: 12px;
-  bottom: 9px;
+  bottom: 8px;
   left: 12px;
   min-height: 38px;
   display: grid;
@@ -482,6 +494,7 @@ select:focus {
   border: 1px solid rgba(255, 255, 255, 0.7);
   border-radius: 10px;
   font-size: 22px;
+  transition: background 120ms ease, transform 120ms ease;
 }
 
 #screen-match .match-clock-button {
@@ -490,7 +503,7 @@ select:focus {
 
 #screen-match .match-timer {
   color: #fff;
-  font-size: 19px;
+  font-size: 16px;
   font-variant-numeric: tabular-nums;
 }
 
@@ -498,7 +511,13 @@ select:focus {
   justify-self: end;
 }
 
-/* Scrollable scorer list */
+#screen-match .match-clock-button:active,
+#screen-match .team-reverse-button:active {
+  background: rgba(255, 255, 255, 0.28);
+  transform: scale(0.9);
+}
+
+/* Scroll only the scorer list */
 #screen-match > .scorer-card {
   width: 100%;
   min-height: 0;
@@ -568,12 +587,13 @@ select:focus {
   cursor: default;
 }
 
-/* Opponent controls directly below the scorer list */
+/* Narrower opponent panel directly below player list */
 #screen-match .opponent-dock {
   position: static;
   z-index: auto;
-  width: 100%;
+  width: calc(100% - 24px);
   min-height: 58px;
+  justify-self: center;
   padding: 7px 12px;
   display: grid;
   grid-template-columns: minmax(0, 1fr) 28px 40px 40px;
@@ -802,7 +822,7 @@ select:focus {
   border: 0;
 }
 
-/* Responsive adjustments */
+/* Responsive layout */
 @media (max-width: 380px) {
   main {
     padding-right: 14px;
@@ -843,6 +863,10 @@ select:focus {
   #screen-match .score {
     font-size: 25px;
   }
+
+  #screen-match .opponent-dock {
+    width: calc(100% - 16px);
+  }
 }
 
 @media (min-width: 600px) {
@@ -855,6 +879,7 @@ select:focus {
   }
 
   .timer-controls {
+    display: grid;
     grid-template-columns: repeat(3, 1fr);
   }
 
