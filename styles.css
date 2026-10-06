@@ -914,11 +914,18 @@ main {
 }
 
 #screen-match .match-teams-row {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
-  align-items: start;
-  gap: 8px;
+  position: absolute;
+  top: 14px;
+  left: 50%;
+  width: max-content;
+  max-width: calc(100% - 24px);
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  gap: clamp(8px, 3vw, 24px);
+  transform: translateX(-50%);
 }
+
 
 #screen-match .team {
   min-width: 0;
@@ -1083,11 +1090,6 @@ main:has(#screen-match.active) {
   padding: 14px 12px 50px;
 }
 
-#screen-match .match-teams-row {
-  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
-  gap: 4px;
-}
-
 #screen-match .team-name {
   font-size: clamp(13px, 3.6vw, 17px);
   line-height: 1.15;
@@ -1115,13 +1117,6 @@ main:has(#screen-match.active) {
 }
 
 /* Center the complete team–score–team group */
-#screen-match .match-teams-row {
-  width: 100%;
-  display: flex !important;
-  justify-content: center;
-  align-items: flex-start;
-  gap: clamp(8px, 3vw, 24px);
-}
 
 #screen-match .match-teams-row > .team {
   flex: 0 1 34%;
