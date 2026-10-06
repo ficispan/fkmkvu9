@@ -143,54 +143,77 @@
 </section>
   
 
-<section class="screen" id="screen-output" aria-labelledby="output-title" hidden>
-<div class="screen-heading output-heading">
-<p class="eyebrow">Zápas ukončený</p>
-<h1 id="output-title">Výsledok zápasu</h1>
-<p class="muted">Zdieľaj alebo ulož súhrn zápasu.</p>
-</div>
+<section
+  class="screen"
+  id="screen-output"
+  aria-labelledby="output-title"
+  hidden
+>
+  <div class="screen-heading output-heading">
+    <h1 id="output-title">Výsledok zápasu</h1>
+    <p class="muted">Zdieľaj alebo ulož súhrn zápasu.</p>
+  </div>
 
-<article class="match-poster" id="match-poster">
-<div class="poster-header">
-<div class="poster-crest" aria-hidden="true">FKM</div>
-<div class="poster-meta">
-<span id="poster-date"></span>
-<span id="poster-coach"></span>
-</div>
-</div>
+  <article class="match-poster" id="match-poster">
+    <div class="poster-header">
+      <img
+        class="poster-crest"
+        src="./karlovka.png"
+        alt="FKM Karlova Ves"
+      >
+      <div class="poster-meta">
+        <span id="poster-date"></span>
+        <span id="poster-coach"></span>
+      </div>
+    </div>
 
-<div class="poster-score">
-<div>
-<span class="poster-team">FKM Karlova Ves</span>
-<strong id="poster-home-score">0</strong>
-</div>
-<span class="poster-colon">:</span>
-<div>
-<span class="poster-team" id="poster-opponent">Súper</span>
-<strong id="poster-away-score">0</strong>
-</div>
-</div>
+    <div class="poster-score">
+      <div>
+        <span class="poster-team">FKM Karlova Ves</span>
+        <strong id="poster-home-score">0</strong>
+      </div>
 
-<div class="poster-goals">
-<h2>Góly</h2>
-<p id="poster-goals-text">Zatiaľ bez gólov.</p>
-</div>
+      <span class="poster-colon">:</span>
 
-<div class="poster-lineup">
-<h2>Nominácia</h2>
-<div id="poster-players" class="poster-player-grid"></div>
-</div>
+      <div>
+        <span class="poster-team" id="poster-opponent">Súper</span>
+        <strong id="poster-away-score">0</strong>
+      </div>
+    </div>
 
-<footer class="poster-footer">FKM KARLOVA VES</footer>
-</article>
+    <div class="poster-goals">
+      <h2>Strelci</h2>
+      <p id="poster-goals-text">Bez gólov.</p>
+    </div>
 
-<div class="output-actions">
-<button class="button secondary" id="back-to-match" type="button">Späť k zápasu</button>
-<button class="button primary" id="download-image" type="button">Uložiť obrázok</button>
-<button class="button secondary" id="share-image" type="button">Zdieľať</button>
-<button class="button danger" id="restart-match" type="button">Nový zápas</button>
-</div>
+    <div class="poster-lineup">
+      <h2>Nominácia</h2>
+      <div id="poster-players" class="poster-player-grid"></div>
+    </div>
+
+    <footer class="poster-footer">FKM KARLOVA VES</footer>
+  </article>
+
+  <div class="output-actions">
+    <button class="button secondary" id="back-to-match" type="button">
+      Späť k zápasu
+    </button>
+    <button class="button primary" id="download-image" type="button">
+      Uložiť obrázok
+    </button>
+    <button class="button secondary" id="share-image" type="button">
+      Zdieľať
+    </button>
+    <button class="button danger" id="restart-match" type="button">
+      Nový zápas
+    </button>
+  </div>
 </section>
+
+
+
+
+  
 </main>
 
 <footer class="app-footer">FKM Karlova Ves · Score tracker</footer>
