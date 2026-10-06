@@ -315,6 +315,7 @@ function renderMatch() {
   // Reverz nemení označenie ani počet gólov v spodnom paneli.
   $("#opponent-dock-name").textContent = opponent;
   $("#opponent-goal-count").textContent = String(opponentGoals);
+  $("#opponent-goal-remove").disabled = opponentGoals === 0;
 
 
   $("#timer-toggle").setAttribute(
@@ -791,7 +792,6 @@ function bindEvents() {
   });
 }
 
-localStorage.removeItem(STORAGE_KEY);
 
 loadSavedState();
 bindEvents();
