@@ -372,17 +372,26 @@ function renderMatch() {
 }
 
 function getGoalsSummary() {
-  const home = Object.entries(state.homeGoals)
-    .filter(([, count]) => Number(count) > 0)
-    .flatMap(([name, count]) => Array(Number(count)).fill(name));
+  const scorers = new Map();
 
+  Object.entries(state.homeGoals).forEach(([name, value]) => {
+    const count = Math.max(0, Number(value) || 0);
+    if (count > 0) scorers.set(name, (scorers.get(name) || 0) + count);
+  });
+
+  const ownGoalName = `${state.opponent || "Súper"} vl.`;
   if (state.ownGoals > 0) {
-    home.push(...Array(state.ownGoals).fill(`${state.opponent || "Súper"} vl.`));
+    scorers.set(
+      ownGoalName,
+      (scorers.get(ownGoalName) || 0) + state.ownGoals
+    );
   }
 
-  const away = Array(state.awayGoals.length).fill("Súper");
-  return { home, away };
+  return [...scorers.entries()]
+    .sort(([nameA], [nameB]) => nameA.localeCompare(nameB, "sk"))
+    .map(([name, count]) => count === 1 ? name : `${name} ${count}`);
 }
+
 
 function shirtSvg() {
   return `
@@ -401,32 +410,31 @@ function renderOutput() {
   }).format(new Date());
 
   $("#poster-coach").textContent =
-    state.squads === 2 && state.coach ? `Tréner: ${state.coach}` : "";
+    state.squads === 2 && state.coach
+      ? `Tréner: ${state.coach}`
+      : "";
 
   $("#poster-opponent").textContent = state.opponent || "Súper";
   $("#poster-home-score").textContent =
     String(totalGoals(state.homeGoals) + state.ownGoals);
   $("#poster-away-score").textContent = String(state.awayGoals.length);
 
-  const { home, away } = getGoalsSummary();
-  const lines = [];
-
-  if (home.length) lines.push(`FKM Karlova Ves: ${home.join(", ")}`);
-  if (away.length) lines.push(`${state.opponent || "Súper"}: ${away.join(", ")}`);
-
+  const scorers = getGoalsSummary();
   $("#poster-goals-text").textContent =
-    lines.length ? lines.join(" · ") : "Zatiaľ bez gólov.";
+    scorers.length ? scorers.join(", ") : "Bez gólov.";
 
   const playersContainer = $("#poster-players");
   playersContainer.replaceChildren();
 
-  state.selectedPlayers.forEach((player) => {
-    const item = document.createElement("div");
-    item.className = "poster-player";
-    item.innerHTML = `${shirtSvg()}<span></span>`;
-    item.querySelector("span").textContent = player;
-    playersContainer.append(item);
-  });
+  [...state.selectedPlayers]
+    .sort((a, b) => a.localeCompare(b, "sk"))
+    .forEach((player) => {
+      const item = document.createElement("div");
+      item.className = "poster-player";
+      item.innerHTML = `${shirtSvg()}<span></span>`;
+      item.querySelector("span").textContent = player;
+      playersContainer.append(item);
+    });
 }
 
 function wrapCanvasText(context, text, maxWidth) {
