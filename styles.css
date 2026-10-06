@@ -379,7 +379,7 @@ select:focus {
   height: calc(100dvh - 84px);
   min-height: 0;
   margin: 0;
-  padding: 8px 22px 12px;
+  padding: 0px 12px 12px;
   display: grid;
   grid-template-rows: 132px minmax(0, 1fr) 58px;
   gap: 8px;
