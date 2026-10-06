@@ -431,7 +431,7 @@ select:focus {
 
 #screen-match .team {
   min-width: 0;
-  padding: 0;
+  padding: 7px 0 0;
   display: flex;
   flex-direction: column;
   align-items: center;
