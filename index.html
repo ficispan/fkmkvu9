@@ -79,40 +79,43 @@
 
 <section class="screen" id="screen-match" aria-labelledby="match-title" hidden>
   <div class="scoreboard">
-    <div class="team">
-      <div class="team-name" id="home-team-name">FKM Karlova Ves</div>
-      <div class="team-coach" id="home-coach"></div>
+    <div class="match-teams-row">
+      <div class="team">
+        <div class="team-name" id="home-team-name">FKM Karlova Ves</div>
+        <div class="team-coach" id="home-coach"></div>
+      </div>
+
+      <div class="score" aria-label="Skóre">
+        <span id="home-score">0</span>
+        <span class="score-dash">:</span>
+        <span id="away-score">0</span>
+      </div>
+
+      <div class="team">
+        <div class="team-name" id="away-team-name">Súper</div>
+        <div class="team-coach team-coach-placeholder" aria-hidden="true"></div>
+      </div>
     </div>
 
-    <div class="score">
-      <span id="home-score">0</span>
-      <span class="score-dash">:</span>
-      <span id="away-score">0</span>
+    <div class="match-toolbar">
+      <button
+        class="button secondary match-clock-button"
+        id="timer-toggle"
+        type="button"
+        aria-label="Spustiť časomieru"
+        title="Spustiť / zastaviť časomieru"
+      >⏱</button>
+
+      <strong id="timer-display" class="match-timer">00:00</strong>
+
+      <button
+        class="team-reverse-button"
+        id="reverse-teams"
+        type="button"
+        aria-label="Prehodiť tímy v skóre"
+        title="Prehodiť tímy v skóre"
+      >⇄</button>
     </div>
-
-    <div class="team">
-      <div class="team-name" id="away-team-name">Súper</div>
-      <div class="team-coach team-coach-placeholder" aria-hidden="true"></div>
-    </div>
-  </div>
-
-  <div class="match-toolbar">
-    <button
-      class="button secondary match-clock-button"
-      id="timer-toggle"
-      type="button"
-      aria-label="Spustiť časomieru"
-    >⏱️</button>
-
-    <strong id="timer-display" class="match-timer">00:00</strong>
-
-    <button
-      class="team-reverse-button"
-      id="reverse-teams"
-      type="button"
-      aria-label="Prehodiť tímy v skóre"
-      title="Prehodiť tímy v skóre"
-    >⇄</button>
   </div>
 
   <div class="card scorer-card">
@@ -124,22 +127,20 @@
     <span class="opponent-dock-count" id="opponent-goal-count">0</span>
 
     <button
-      class="dock-goal-button"
+      class="goal-button"
       id="opponent-goal-add"
       type="button"
       aria-label="Pridať gól súperovi"
     >+</button>
 
     <button
-      class="dock-goal-button"
+      class="goal-button minus"
       id="opponent-goal-remove"
       type="button"
       aria-label="Odobrať gól súperovi"
     >−</button>
   </div>
 </section>
-
-
   
 
 <section class="screen" id="screen-output" aria-labelledby="output-title" hidden>
