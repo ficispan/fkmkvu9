@@ -878,3 +878,12 @@ select:focus {
     width: calc(100% - 16px);
   }
 }
+
+.scorer-summary-item {
+  white-space: nowrap;
+}
+
+.poster-goals p.scorer-summary {
+  overflow-wrap: normal;
+  word-break: normal;
+}
