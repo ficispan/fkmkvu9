@@ -116,7 +116,7 @@ button {
   display: none !important;
 }
 
-/* Main and screens */
+/* Main and screen visibility */
 main {
   flex: 1 0 auto;
   padding: 28px 22px 40px;
@@ -147,7 +147,7 @@ main {
   }
 }
 
-/* Shared components */
+/* Shared elements */
 .screen-heading {
   margin: 4px 0 22px;
 }
@@ -224,7 +224,7 @@ main {
   display: none !important;
 }
 
-/* Setup screen */
+/* Screen 1: setup */
 .form-card {
   display: grid;
   gap: 10px;
@@ -279,7 +279,7 @@ select:focus {
   font-size: 12px;
 }
 
-/* Lineup screen */
+/* Screen 2: lineup */
 #screen-lineup {
   margin-top: -14px;
 }
@@ -373,7 +373,7 @@ select:focus {
   flex: 1;
 }
 
-/* Match screen: header and scoreboard stay fixed; player list scrolls */
+/* Screen 3: fixed scoreboard, scrollable scorer list */
 #screen-match.active {
   position: fixed;
   z-index: 20;
@@ -393,7 +393,6 @@ select:focus {
   background: var(--paper);
 }
 
-/* Scoreboard */
 #screen-match .scoreboard {
   position: relative;
   width: 100%;
@@ -405,8 +404,6 @@ select:focus {
   border-radius: 14px;
 }
 
-/* Symmetric side columns: team 1 centered in left half,
-   score centered, team 2 centered in right half. */
 #screen-match .match-teams-row {
   position: absolute;
   top: 12px;
@@ -473,7 +470,6 @@ select:focus {
   font-size: 0.75em;
 }
 
-/* Stopwatch and reverse buttons */
 #screen-match .match-toolbar {
   position: absolute;
   right: 12px;
@@ -522,7 +518,6 @@ select:focus {
   transform: scale(0.9);
 }
 
-/* Scrollable scorer list */
 #screen-match > .scorer-card {
   width: 100%;
   height: 100%;
@@ -594,7 +589,6 @@ select:focus {
   cursor: default;
 }
 
-/* Opponent panel stays below the list with a bottom inset */
 #screen-match .opponent-dock {
   position: static;
   z-index: auto;
@@ -643,7 +637,7 @@ select:focus {
   display: none;
 }
 
-/* Output screen */
+/* Screen 4: poster */
 .output-heading {
   text-align: center;
 }
@@ -657,63 +651,73 @@ select:focus {
 }
 
 .poster-header {
-  min-height: 70px;
-  padding: 13px 16px;
+  min-height: 52px;
+  padding: 12px 16px 4px;
   display: flex;
   align-items: center;
-  gap: 12px;
+  justify-content: center;
   color: #fff;
   background: var(--red);
-}
-
-.poster-crest {
-  width: 48px;
-  height: 48px;
-  flex: 0 0 auto;
-  object-fit: contain;
-  border-radius: 50%;
 }
 
 .poster-meta {
+  width: 100%;
   display: flex;
-  flex-direction: column;
-  gap: 5px;
-  font-size: 11px;
-  opacity: 0.95;
+  justify-content: center;
+}
+
+#poster-date {
+  font-size: 17px;
+  font-weight: 700;
+  text-align: center;
 }
 
 .poster-score {
-  min-height: 120px;
-  padding: 16px 10px;
+  min-height: 142px;
+  padding: 6px 12px 16px;
   display: grid;
-  grid-template-columns: 1fr auto 1fr;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   align-items: center;
-  text-align: center;
+  gap: 8px;
   color: #fff;
+  text-align: center;
   background: var(--red);
 }
 
-.poster-score > div {
+.poster-team-block {
+  min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 7px;
+  align-items: center;
+  gap: 4px;
 }
 
 .poster-team {
-  font-size: 13px;
-  font-weight: 650;
+  font-size: clamp(13px, 3.5vw, 17px);
+  font-weight: 700;
+  line-height: 1.15;
   overflow-wrap: anywhere;
 }
 
+.poster-coach {
+  font-size: 11px;
+  line-height: 1.2;
+}
+
+.poster-coach:empty {
+  display: none;
+}
+
 .poster-score strong {
-  font-size: 38px;
+  font-size: 36px;
   line-height: 1;
   font-variant-numeric: tabular-nums;
 }
 
 .poster-colon {
-  font-size: 25px;
-  opacity: 0.7;
+  font-size: 26px;
+  font-weight: 700;
+  opacity: 0.75;
 }
 
 .poster-goals,
@@ -734,6 +738,15 @@ select:focus {
   margin: 0;
   font-size: 13px;
   line-height: 1.6;
+}
+
+.poster-goals p.scorer-summary {
+  overflow-wrap: normal;
+  word-break: normal;
+}
+
+.scorer-summary-item {
+  white-space: nowrap;
 }
 
 .poster-lineup {
@@ -877,13 +890,19 @@ select:focus {
   #screen-match .opponent-dock {
     width: calc(100% - 16px);
   }
-}
 
-.scorer-summary-item {
-  white-space: nowrap;
-}
+  .poster-score {
+    min-height: 132px;
+    padding-right: 8px;
+    padding-left: 8px;
+    gap: 4px;
+  }
 
-.poster-goals p.scorer-summary {
-  overflow-wrap: normal;
-  word-break: normal;
+  .poster-team {
+    font-size: 12px;
+  }
+
+  .poster-score strong {
+    font-size: 32px;
+  }
 }
