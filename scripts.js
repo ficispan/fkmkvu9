@@ -792,6 +792,7 @@ function bindEvents() {
   });
 }
 
+localStorage.removeItem(STORAGE_KEY);
 
 loadSavedState();
 bindEvents();
