@@ -687,6 +687,22 @@ select:focus {
   align-items: center;
   gap: 4px;
 }
+.poster-team-heading {
+  max-width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+}
+
+.poster-team-heading .poster-team,
+.poster-team-heading .poster-coach {
+  max-width: 100%;
+}
+
+.poster-team-heading .poster-coach {
+  margin-top: 4px;
+}
 
 .poster-team {
   font-size: clamp(13px, 3.5vw, 17px);
@@ -766,11 +782,13 @@ select:focus {
   overflow-wrap: anywhere;
 }
 
-.shirt-icon {
-  width: 29px;
-  height: 27px;
-  color: var(--red);
+.poster-player .shirt-icon {
+  display: block;
+  width: 52px;
+  height: 52px;
+  object-fit: contain;
 }
+
 
 .poster-footer {
   padding: 12px;
@@ -902,11 +920,3 @@ select:focus {
     font-size: 32px;
   }
 }
-
-.poster-player .shirt-icon {
-  display: block;
-  width: 52px;
-  height: 52px;
-  object-fit: contain;
-}
-
