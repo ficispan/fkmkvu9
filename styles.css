@@ -688,6 +688,28 @@ select:focus {
   gap: 4px;
 }
 
+.poster-team-heading {
+  position: relative;
+  width: max-content;
+  max-width: 100%;
+  padding-bottom: 18px;
+  text-align: center;
+}
+
+.poster-team-heading .poster-team {
+  display: block;
+}
+
+.poster-team-heading .poster-coach {
+  position: absolute;
+  top: calc(100% - 14px);
+  left: 0;
+  width: max-content;
+  margin: 0;
+  text-align: left;
+}
+
+
 .poster-team {
   font-size: clamp(13px, 3.5vw, 17px);
   font-weight: 700;
