@@ -684,13 +684,13 @@ select:focus {
 }
 
 #poster-date {
-  font-size: 17px;
+  font-size: 14px;
   font-weight: 700;
   text-align: center;
 }
 
 .poster-score {
-  min-height: 142px;
+  min-height: 122px;
   padding: 6px 12px 16px;
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
