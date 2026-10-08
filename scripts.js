@@ -614,13 +614,42 @@ async function makePosterBlob() {
   const teamY = 84;
 
   context.font = "700 16px Arial";
+  
+  const homeTeamWidth = Math.min(
+    context.measureText(homeTeam).width,
+    sideWidth
+  );
+  const awayTeamWidth = Math.min(
+    context.measureText(awayTeam).width,
+    sideWidth
+  );
+  
   context.fillText(homeTeam, leftCenter, teamY, sideWidth);
   context.fillText(awayTeam, rightCenter, teamY, sideWidth);
-
-  // Coaches are smaller and below whichever side is Karlova Ves.
+  
   context.font = "12px Arial";
-  if (homeCoach) context.fillText(homeCoach, leftCenter, teamY + 20, sideWidth);
-  if (awayCoach) context.fillText(awayCoach, rightCenter, teamY + 20, sideWidth);
+  context.textAlign = "left";
+  
+  if (homeCoach) {
+    context.fillText(
+      homeCoach,
+      leftCenter - homeTeamWidth / 2,
+      teamY + 20,
+      sideWidth
+    );
+  }
+  
+  if (awayCoach) {
+    context.fillText(
+      awayCoach,
+      rightCenter - awayTeamWidth / 2,
+      teamY + 20,
+      sideWidth
+    );
+  }
+  
+  context.textAlign = "center";
+
 
   context.font = "800 38px Arial";
   context.fillText(homeScore, width * 0.40, 158);
