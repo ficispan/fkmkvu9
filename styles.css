@@ -958,3 +958,9 @@ select:focus {
   object-fit: contain;
 }
 
+#opponent::placeholder {
+  color: #999;
+  opacity: 1;
+  font-weight: 400;
+}
+
