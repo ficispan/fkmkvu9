@@ -377,7 +377,7 @@ select:focus {
 #screen-match.active {
   position: fixed;
   z-index: 20;
-  top: 78px;
+  top: 84px;
   right: max(0px, calc((100vw - 680px) / 2));
   bottom: 0;
   left: max(0px, calc((100vw - 680px) / 2));
