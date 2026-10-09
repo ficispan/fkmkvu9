@@ -959,7 +959,7 @@ select:focus {
 }
 
 #opponent::placeholder {
-  color: #999;
+  color: #767676;
   opacity: 1;
   font-weight: 400;
 }
