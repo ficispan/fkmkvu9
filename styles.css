@@ -759,6 +759,11 @@ select:focus {
   opacity: 0.75;
 }
 
+#screen-output .poster-colon {
+  position: relative;
+  top: 14px;
+}
+
 .poster-goals,
 .poster-lineup {
   padding: 17px;
