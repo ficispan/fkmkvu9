@@ -603,7 +603,7 @@ async function makePosterBlob() {
   context.fillStyle = "#fff";
   context.textAlign = "center";
   context.textBaseline = "alphabetic";
-  context.font = "700 19px Arial";
+  context.font = "700 17px Arial";
   context.fillText(date, width / 2, 34);
 
   // Names share a single row with a centered score.
