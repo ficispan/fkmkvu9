@@ -810,7 +810,7 @@ select:focus {
   align-content: center;
   gap: 5px;
   text-align: center;
-  font-size: 10px;
+  font-size: 11px;
   overflow-wrap: anywhere;
 }
 
